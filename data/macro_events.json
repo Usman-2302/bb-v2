@@ -1,0 +1,1026 @@
+[
+  {
+    "event": "CPI",
+    "date": "2021-01-13",
+    "time": "13:30",
+    "timestamp": 1610544600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2021-02-10",
+    "time": "13:30",
+    "timestamp": 1612960200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2021-03-10",
+    "time": "13:30",
+    "timestamp": 1615379400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2021-04-13",
+    "time": "12:30",
+    "timestamp": 1618316200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2021-05-12",
+    "time": "12:30",
+    "timestamp": 1620822600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2021-06-10",
+    "time": "12:30",
+    "timestamp": 1623324600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2021-07-13",
+    "time": "12:30",
+    "timestamp": 1626175800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2021-08-11",
+    "time": "12:30",
+    "timestamp": 1628677800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2021-09-14",
+    "time": "12:30",
+    "timestamp": 1631619000000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2021-10-13",
+    "time": "12:30",
+    "timestamp": 1634124600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2021-11-10",
+    "time": "13:30",
+    "timestamp": 1636547400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2021-12-10",
+    "time": "13:30",
+    "timestamp": 1639139400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2022-01-12",
+    "time": "13:30",
+    "timestamp": 1641990600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2022-02-10",
+    "time": "13:30",
+    "timestamp": 1644496200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2022-03-10",
+    "time": "13:30",
+    "timestamp": 1646915400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2022-04-12",
+    "time": "12:30",
+    "timestamp": 1649766600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2022-05-11",
+    "time": "12:30",
+    "timestamp": 1652268600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2022-06-10",
+    "time": "12:30",
+    "timestamp": 1654860600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2022-07-13",
+    "time": "12:30",
+    "timestamp": 1657711800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2022-08-10",
+    "time": "12:30",
+    "timestamp": 1660127400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2022-09-13",
+    "time": "12:30",
+    "timestamp": 1663068600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2022-10-13",
+    "time": "12:30",
+    "timestamp": 1665660600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2022-11-10",
+    "time": "13:30",
+    "timestamp": 1668083400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2022-12-13",
+    "time": "13:30",
+    "timestamp": 1670934600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2023-01-12",
+    "time": "13:30",
+    "timestamp": 1673526600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2023-02-14",
+    "time": "13:30",
+    "timestamp": 1676377800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2023-03-14",
+    "time": "12:30",
+    "timestamp": 1678793400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2023-04-12",
+    "time": "12:30",
+    "timestamp": 1681299000000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2023-05-10",
+    "time": "12:30",
+    "timestamp": 1683714600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2023-06-13",
+    "time": "12:30",
+    "timestamp": 1686652200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2023-07-12",
+    "time": "12:30",
+    "timestamp": 1689157800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2023-08-10",
+    "time": "12:30",
+    "timestamp": 1691659800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2023-09-13",
+    "time": "12:30",
+    "timestamp": 1694600200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2023-10-12",
+    "time": "12:30",
+    "timestamp": 1697106600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2023-11-14",
+    "time": "13:30",
+    "timestamp": 1699957800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2023-12-12",
+    "time": "13:30",
+    "timestamp": 1702380600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2024-01-11",
+    "time": "13:30",
+    "timestamp": 1704972600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2024-02-13",
+    "time": "13:30",
+    "timestamp": 1707823800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2024-03-12",
+    "time": "12:30",
+    "timestamp": 1710239400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2024-04-10",
+    "time": "12:30",
+    "timestamp": 1712745000000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2024-05-15",
+    "time": "12:30",
+    "timestamp": 1715773800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2024-06-12",
+    "time": "12:30",
+    "timestamp": 1718188200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2024-07-11",
+    "time": "12:30",
+    "timestamp": 1720693800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2024-08-14",
+    "time": "12:30",
+    "timestamp": 1723631400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2024-09-11",
+    "time": "12:30",
+    "timestamp": 1726050600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2024-10-10",
+    "time": "12:30",
+    "timestamp": 1728556200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2024-11-13",
+    "time": "13:30",
+    "timestamp": 1731497400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "CPI",
+    "date": "2024-12-11",
+    "time": "13:30",
+    "timestamp": 1733920200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "FOMC",
+    "date": "2021-01-27",
+    "time": "19:00",
+    "timestamp": 1611774000000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2021-03-17",
+    "time": "18:00",
+    "timestamp": 1616004000000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2021-04-28",
+    "time": "18:00",
+    "timestamp": 1619632800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2021-06-16",
+    "time": "18:00",
+    "timestamp": 1623866400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2021-07-28",
+    "time": "18:00",
+    "timestamp": 1627495200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2021-09-22",
+    "time": "18:00",
+    "timestamp": 1632333600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2021-11-03",
+    "time": "18:00",
+    "timestamp": 1635962400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2021-12-15",
+    "time": "19:00",
+    "timestamp": 1639594800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2022-01-26",
+    "time": "19:00",
+    "timestamp": 1643223600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2022-03-16",
+    "time": "18:00",
+    "timestamp": 1647453600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2022-05-04",
+    "time": "18:00",
+    "timestamp": 1651687200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2022-06-15",
+    "time": "18:00",
+    "timestamp": 1655316000000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2022-07-27",
+    "time": "18:00",
+    "timestamp": 1658944800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2022-09-21",
+    "time": "18:00",
+    "timestamp": 1663783200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2022-11-02",
+    "time": "18:00",
+    "timestamp": 1667412000000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2022-12-14",
+    "time": "19:00",
+    "timestamp": 1671044400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2023-02-01",
+    "time": "19:00",
+    "timestamp": 1675278000000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2023-03-22",
+    "time": "18:00",
+    "timestamp": 1679511600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2023-05-03",
+    "time": "18:00",
+    "timestamp": 1683140400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2023-06-14",
+    "time": "18:00",
+    "timestamp": 1686769200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2023-07-26",
+    "time": "18:00",
+    "timestamp": 1690394400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2023-09-20",
+    "time": "18:00",
+    "timestamp": 1695232800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2023-11-01",
+    "time": "18:00",
+    "timestamp": 1698861600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2023-12-13",
+    "time": "19:00",
+    "timestamp": 1702494000000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2024-01-31",
+    "time": "19:00",
+    "timestamp": 1706727600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2024-03-20",
+    "time": "18:00",
+    "timestamp": 1710961200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2024-05-01",
+    "time": "18:00",
+    "timestamp": 1714586400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2024-06-12",
+    "time": "18:00",
+    "timestamp": 1718215200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2024-07-31",
+    "time": "18:00",
+    "timestamp": 1722441600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2024-09-18",
+    "time": "18:00",
+    "timestamp": 1726682400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2024-11-07",
+    "time": "19:00",
+    "timestamp": 1731006000000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "FOMC",
+    "date": "2024-12-18",
+    "time": "19:00",
+    "timestamp": 1734548400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 90
+  },
+  {
+    "event": "NFP",
+    "date": "2021-01-08",
+    "time": "13:30",
+    "timestamp": 1610112600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2021-02-05",
+    "time": "13:30",
+    "timestamp": 1612531800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2021-03-05",
+    "time": "13:30",
+    "timestamp": 1614950200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2021-04-02",
+    "time": "12:30",
+    "timestamp": 1617366600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2021-05-07",
+    "time": "12:30",
+    "timestamp": 1620390600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2021-06-04",
+    "time": "12:30",
+    "timestamp": 1622806200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2021-07-02",
+    "time": "12:30",
+    "timestamp": 1625225400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2021-08-06",
+    "time": "12:30",
+    "timestamp": 1628249400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2021-09-03",
+    "time": "12:30",
+    "timestamp": 1630668600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2021-10-08",
+    "time": "12:30",
+    "timestamp": 1633692600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2021-11-05",
+    "time": "12:30",
+    "timestamp": 1636111800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2021-12-03",
+    "time": "13:30",
+    "timestamp": 1638534600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2022-01-07",
+    "time": "13:30",
+    "timestamp": 1641558600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2022-02-04",
+    "time": "13:30",
+    "timestamp": 1643977800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2022-03-04",
+    "time": "13:30",
+    "timestamp": 1646397000000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2022-04-01",
+    "time": "12:30",
+    "timestamp": 1648812600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2022-05-06",
+    "time": "12:30",
+    "timestamp": 1651836600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2022-06-03",
+    "time": "12:30",
+    "timestamp": 1654252200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2022-07-08",
+    "time": "12:30",
+    "timestamp": 1657276200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2022-08-05",
+    "time": "12:30",
+    "timestamp": 1659695400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2022-09-02",
+    "time": "12:30",
+    "timestamp": 1662114600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2022-10-07",
+    "time": "12:30",
+    "timestamp": 1665138600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2022-11-04",
+    "time": "12:30",
+    "timestamp": 1667557800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2022-12-02",
+    "time": "13:30",
+    "timestamp": 1669980600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2023-01-06",
+    "time": "13:30",
+    "timestamp": 1673004600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2023-02-03",
+    "time": "13:30",
+    "timestamp": 1675423800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2023-03-10",
+    "time": "13:30",
+    "timestamp": 1678451400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2023-04-07",
+    "time": "12:30",
+    "timestamp": 1680866200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2023-05-05",
+    "time": "12:30",
+    "timestamp": 1683282600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2023-06-02",
+    "time": "12:30",
+    "timestamp": 1685698200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2023-07-07",
+    "time": "12:30",
+    "timestamp": 1688722200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2023-08-04",
+    "time": "12:30",
+    "timestamp": 1691141400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2023-09-01",
+    "time": "12:30",
+    "timestamp": 1693560600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2023-10-06",
+    "time": "12:30",
+    "timestamp": 1696584600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2023-11-03",
+    "time": "12:30",
+    "timestamp": 1699003800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2023-12-08",
+    "time": "13:30",
+    "timestamp": 1702038600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2024-01-05",
+    "time": "13:30",
+    "timestamp": 1704461400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2024-02-02",
+    "time": "13:30",
+    "timestamp": 1706880600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2024-03-08",
+    "time": "13:30",
+    "timestamp": 1709900200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2024-04-05",
+    "time": "12:30",
+    "timestamp": 1712320200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2024-05-03",
+    "time": "12:30",
+    "timestamp": 1714739400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2024-06-07",
+    "time": "12:30",
+    "timestamp": 1717759800000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2024-07-05",
+    "time": "12:30",
+    "timestamp": 1720178200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2024-08-02",
+    "time": "12:30",
+    "timestamp": 1722598200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2024-09-06",
+    "time": "12:30",
+    "timestamp": 1725622200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2024-10-04",
+    "time": "12:30",
+    "timestamp": 1728041400000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2024-11-01",
+    "time": "12:30",
+    "timestamp": 1730460600000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  },
+  {
+    "event": "NFP",
+    "date": "2024-12-06",
+    "time": "13:30",
+    "timestamp": 1733488200000,
+    "blackout_before_min": 60,
+    "blackout_after_min": 15
+  }
+]

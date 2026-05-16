@@ -1,0 +1,43 @@
+{
+  "name": "bulletbrain-v3",
+  "version": "3.0.0",
+  "description": "BulletBrain v3.0 — Crypto Futures Backtesting Engine",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "backtest:fvg": "node src/backtest/run_fvg_backtest.js",
+    "backtest:ob": "node src/backtest/run_ob_backtest.js",
+    "backtest:lso": "node src/backtest/run_lso_backtest.js",
+    "backtest:lso:slippage": "node src/backtest/run_lso_slippage_stress.js",
+    "backtest:shortlso": "node src/backtest/run_short_lso_backtest.js",
+    "backtest:stress": "node src/backtest/run_stress_test.js",
+    "backtest:forward": "node src/backtest/run_forward_2025.js",
+    "shadow": "node src/live/shadowRunner.js",
+    "setup": "bash setup_vps.sh"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.17",
+    "axios": "1.7.2",
+    "dotenv": "16.4.5",
+    "ndjson": "2.0.0",
+    "ws": "8.17.1"
+  },
+  "devDependencies": {
+    "jest": "29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.js"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "UNLICENSED"
+}

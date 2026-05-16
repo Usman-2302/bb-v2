@@ -1,0 +1,21 @@
+# Environment
+.env
+
+# Dependencies
+node_modules/
+
+# Data files (large — don't commit)
+data/historical/
+data/oi/
+data/funding/
+
+# Results
+results/
+
+# Logs
+logs/
+
+# Coverage
+coverage/
+bbv2-key.pem
+data/recent_48h.json

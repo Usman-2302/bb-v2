@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "PowerShell(node tests/adversarial_indicators.js 2>&1 | Select-Object -Last 10)",
+      "PowerShell(node -e \"const c = require\\('./config.js'\\); console.log\\('FVG validityCandles:', c.FVG.validityCandles\\); console.log\\('LSO swingLookback:', c.LSO.swingLookback\\); console.log\\('SYMBOL_STRATEGY_POLICY:', JSON.stringify\\(c.SYMBOL_STRATEGY_POLICY, null, 2\\)\\); console.log\\('oiDataFallback:', c.LSO.oiDataFallback\\);\")",
+      "PowerShell(git config *)"
+    ]
+  }
+}
