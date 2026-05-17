@@ -413,6 +413,18 @@ function connectWebSocket() {
     kickWatchdog();
     try {
       const msg = JSON.parse(data.toString());
+      
+      // Debug: log stream event types to confirm messages are arriving
+      if (msg.e) {
+        // Log first message of each type, then every 100th
+        if (!ws._msgCount) ws._msgCount = {};
+        const type = msg.e;
+        ws._msgCount[type] = (ws._msgCount[type] || 0) + 1;
+        if (ws._msgCount[type] === 1 || ws._msgCount[type] % 100 === 0) {
+          console.log(`[WS] ${type} #${ws._msgCount[type]}`);
+        }
+      }
+      
       if (msg.k) {
         const k = msg.k;
         const candle = {
@@ -422,12 +434,13 @@ function connectWebSocket() {
           volume: parseFloat(k.v),
         };
         if (k.x) {
+          console.log(`[WS] Candle closed @ ${new Date(k.t).toISOString()} close=$${parseFloat(k.c).toFixed(0)}`);
           if (candles.length >= 200) candle.regime = detectRegimeStreaming();
           onNewCandle(candle);
         }
       }
     } catch (e) {
-      console.error('[WS] Parse error:', e.message);
+      console.error('[WS] Parse error:', e.message, 'raw:', String(data).slice(0, 100));
     }
   });
 
