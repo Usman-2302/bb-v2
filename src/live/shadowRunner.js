@@ -484,14 +484,18 @@ async function pollLatestCandle() {
       return;
     }
     
-    // Process only the closed candle (second-to-last, as last may be still open)
+    // Process only closed candles (closeTime is in the past)
     for (const k of resp.data) {
       const openTime = k[0];
       const closeTime = k[6];
-      const isClosed = (Date.now() - closeTime) > 60000; // closed >1 min ago
+      const isClosed = Date.now() > closeTime;
       
       if (!isClosed) {
-        console.log(`[REST] Poll: latest still open (${new Date(openTime).toISOString()})`);
+        // Log once per candle, not every poll
+        if (!pollLatestCandle._lastSkipped || pollLatestCandle._lastSkipped !== openTime) {
+          pollLatestCandle._lastSkipped = openTime;
+          console.log(`[REST] Waiting for ${new Date(openTime).toISOString()} to close at ${new Date(closeTime).toISOString()}`);
+        }
         continue;
       }
       
@@ -516,9 +520,9 @@ async function pollLatestCandle() {
 }
 
 function startRESTPolling() {
-  console.log('[REST] Polling Binance every 60s. Last backfill candle was:', lastProcessedCandle, '=', new Date(lastProcessedCandle).toISOString());
+  console.log('[REST] Polling Binance every 30s. Last backfill candle was:', lastProcessedCandle, '=', new Date(lastProcessedCandle).toISOString());
   pollLatestCandle();
-  setInterval(pollLatestCandle, 60000);
+  setInterval(pollLatestCandle, 30000);
 }
 
 // ────────────────────────────────────────────────────────────────────
