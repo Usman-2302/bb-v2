@@ -466,6 +466,51 @@ function connectWebSocket() {
 }
 
 // ────────────────────────────────────────────────────────────────────
+// REST POLLING FALLBACK (works when WebSocket frames are blocked)
+// ────────────────────────────────────────────────────────────────────
+
+let lastProcessedCandle = 0;
+
+async function pollLatestCandle() {
+  const axios = require('axios');
+  try {
+    const resp = await axios.get('https://fapi.binance.com/fapi/v1/klines', {
+      params: { symbol: 'BTCUSDT', interval: '15m', limit: 2 },
+      timeout: 10000,
+    });
+    
+    if (!resp.data || resp.data.length === 0) return;
+    
+    // Process only the closed candle (second-to-last, as last may be still open)
+    for (const k of resp.data) {
+      const openTime = k[0];
+      const isClosed = (Date.now() - k[6]) > 60000; // closed >1 min ago
+      
+      if (isClosed && openTime > lastProcessedCandle) {
+        lastProcessedCandle = openTime;
+        const candle = {
+          openTime, closeTime: k[6],
+          open: parseFloat(k[1]), high: parseFloat(k[2]),
+          low: parseFloat(k[3]), close: parseFloat(k[4]),
+          volume: parseFloat(k[5]),
+        };
+        if (candles.length >= 200) candle.regime = detectRegimeStreaming();
+        console.log(`[REST] Candle closed @ ${new Date(openTime).toISOString()} close=$${candle.close.toFixed(0)}`);
+        onNewCandle(candle);
+      }
+    }
+  } catch (e) {
+    // Silent — will retry next interval
+  }
+}
+
+function startRESTPolling() {
+  console.log('[REST] Polling Binance every 60s as WebSocket fallback.');
+  pollLatestCandle(); // immediate first poll
+  setInterval(pollLatestCandle, 60000);
+}
+
+// ────────────────────────────────────────────────────────────────────
 // BACKFILL: download recent candles for warmup
 // ────────────────────────────────────────────────────────────────────
 
@@ -514,6 +559,8 @@ async function backfillWarmup() {
     for (const [, acct] of Object.entries(accounts)) {
       initAccount(acct);
     }
+    // Seed REST poller with last backfill candle time
+    lastProcessedCandle = candles[candles.length - 1]?.openTime || 0;
     console.log('Both accounts initialized. Waiting for live candles...\n');
 
   } catch (e) {
@@ -542,8 +589,9 @@ async function main() {
   // Backfill
   await backfillWarmup();
 
-  // Connect
+  // Connect WebSocket + REST polling fallback
   connectWebSocket();
+  startRESTPolling();
 }
 
 // Only auto-run when executed directly (not on require)
