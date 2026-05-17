@@ -352,56 +352,101 @@ function onNewCandle(candle) {
 }
 
 // ────────────────────────────────────────────────────────────────────
-// WEBSOCKET CONNECTION
+// WEBSOCKET CONNECTION (Hardened — heartbeat + watchdog + backoff)
 // ────────────────────────────────────────────────────────────────────
+
+let reconnectAttempt = 0;
 
 function connectWebSocket() {
   const wsUrl = `wss://fstream.binance.com/ws/${SYMBOL}@kline_${TIMEFRAME}`;
-  console.log(`Connecting to ${wsUrl}...`);
-
+  
+  // Exponential backoff: 10s → 20s → 40s → 80s → max 5min
+  if (reconnectAttempt > 0) {
+    const delay = Math.min(10000 * Math.pow(2, reconnectAttempt - 1), 300000);
+    console.log(`[WS] Reconnect #${reconnectAttempt} — waiting ${(delay/1000).toFixed(0)}s...`);
+    return setTimeout(connectWebSocket, delay);
+  }
+  
+  console.log(`[WS] Connecting to ${wsUrl}...`);
   const ws = new WebSocket(wsUrl);
-
+  
+  // ── Heartbeat state ──────────────────────────────────────────────
+  let pingHandle = null;
+  let watchdogHandle = null;
+  let lastActivity = Date.now();
+  
+  function clearTimers() {
+    if (pingHandle) { clearInterval(pingHandle); pingHandle = null; }
+    if (watchdogHandle) { clearTimeout(watchdogHandle); watchdogHandle = null; }
+  }
+  
+  function kickWatchdog() {
+    lastActivity = Date.now();
+  }
+  
+  // ── Event handlers ───────────────────────────────────────────────
   ws.on('open', () => {
-    console.log('WebSocket connected. Waiting for candle data...');
-    console.log('Warmup: need 200 candles before signals fire.\n');
+    console.log('[WS] Connected. Sending heartbeat every 3m, watchdog at 10m silence.');
+    reconnectAttempt = 0;
+    kickWatchdog();
+    
+    // Ping every 3 minutes
+    pingHandle = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.ping();
+        kickWatchdog(); // our ping counts as activity
+      }
+    }, 180000);
+    
+    // Watchdog: if 10 minutes of silence, force terminate
+    watchdogHandle = setInterval(() => {
+      const silent = Date.now() - lastActivity;
+      if (silent > 600000) {
+        console.error(`[WS] WATCHDOG: ${(silent/1000).toFixed(0)}s silence. Terminating socket.`);
+        clearTimers();
+        try { ws.terminate(); } catch(e) {}
+      }
+    }, 60000); // check every 60s
   });
-
+  
   ws.on('message', (data) => {
+    kickWatchdog();
     try {
       const msg = JSON.parse(data.toString());
       if (msg.k) {
         const k = msg.k;
         const candle = {
-          openTime: k.t,
-          closeTime: k.T,
-          open: parseFloat(k.o),
-          high: parseFloat(k.h),
-          low: parseFloat(k.l),
-          close: parseFloat(k.c),
+          openTime: k.t, closeTime: k.T,
+          open: parseFloat(k.o), high: parseFloat(k.h),
+          low: parseFloat(k.l), close: parseFloat(k.c),
           volume: parseFloat(k.v),
         };
-
-        // Only process on candle close
         if (k.x) {
-          // Auto-tag regime
-          if (candles.length >= 200) {
-            candle.regime = detectRegimeStreaming();
-          }
+          if (candles.length >= 200) candle.regime = detectRegimeStreaming();
           onNewCandle(candle);
         }
       }
     } catch (e) {
-      console.error('WS parse error:', e.message);
+      console.error('[WS] Parse error:', e.message);
     }
   });
 
   ws.on('error', (err) => {
-    console.error('WebSocket error:', err.message);
+    console.error('[WS] Error:', err.message);
+    clearTimers();
   });
 
-  ws.on('close', () => {
-    console.log('WebSocket closed. Reconnecting in 10s...');
-    setTimeout(connectWebSocket, 10000);
+  ws.on('close', (code) => {
+    clearTimers();
+    reconnectAttempt++;
+    console.log(`[WS] Closed (code=${code}). Reconnect #${reconnectAttempt}...`);
+    
+    if (reconnectAttempt > 20) {
+      console.error('[WS] FATAL: 20 reconnect failures. Exiting for PM2 restart.');
+      process.exit(1);
+    }
+    
+    connectWebSocket();
   });
 
   return ws;
