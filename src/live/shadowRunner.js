@@ -479,34 +479,45 @@ async function pollLatestCandle() {
       timeout: 10000,
     });
     
-    if (!resp.data || resp.data.length === 0) return;
+    if (!resp.data || resp.data.length === 0) {
+      console.log('[REST] Poll: empty response');
+      return;
+    }
     
     // Process only the closed candle (second-to-last, as last may be still open)
     for (const k of resp.data) {
       const openTime = k[0];
-      const isClosed = (Date.now() - k[6]) > 60000; // closed >1 min ago
+      const closeTime = k[6];
+      const isClosed = (Date.now() - closeTime) > 60000; // closed >1 min ago
       
-      if (isClosed && openTime > lastProcessedCandle) {
-        lastProcessedCandle = openTime;
-        const candle = {
-          openTime, closeTime: k[6],
-          open: parseFloat(k[1]), high: parseFloat(k[2]),
-          low: parseFloat(k[3]), close: parseFloat(k[4]),
-          volume: parseFloat(k[5]),
-        };
-        if (candles.length >= 200) candle.regime = detectRegimeStreaming();
-        console.log(`[REST] Candle closed @ ${new Date(openTime).toISOString()} close=$${candle.close.toFixed(0)}`);
-        onNewCandle(candle);
+      if (!isClosed) {
+        console.log(`[REST] Poll: latest still open (${new Date(openTime).toISOString()})`);
+        continue;
       }
+      
+      if (openTime <= lastProcessedCandle) {
+        continue;
+      }
+      
+      lastProcessedCandle = openTime;
+      const candle = {
+        openTime, closeTime,
+        open: parseFloat(k[1]), high: parseFloat(k[2]),
+        low: parseFloat(k[3]), close: parseFloat(k[4]),
+        volume: parseFloat(k[5]),
+      };
+      if (candles.length >= 200) candle.regime = detectRegimeStreaming();
+      console.log(`[REST] NEW CANDLE @ ${new Date(openTime).toISOString()} close=$${candle.close.toFixed(0)} (lastProcessed=${lastProcessedCandle})`);
+      onNewCandle(candle);
     }
   } catch (e) {
-    // Silent — will retry next interval
+    console.error('[REST] Poll FAILED:', e.message);
   }
 }
 
 function startRESTPolling() {
-  console.log('[REST] Polling Binance every 60s as WebSocket fallback.');
-  pollLatestCandle(); // immediate first poll
+  console.log('[REST] Polling Binance every 60s. Last backfill candle was:', lastProcessedCandle, '=', new Date(lastProcessedCandle).toISOString());
+  pollLatestCandle();
   setInterval(pollLatestCandle, 60000);
 }
 
