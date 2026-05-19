@@ -270,6 +270,9 @@ function processCandleForAccount(acct, candleIndex) {
 
     break; // one trade per candle
   }
+
+  // Sync activeZones back (consumed pools removed by onTradeOpened)
+  acct.activeZones = activeZones;
 }
 
 // ────────────────────────────────────────────────────────────────────
@@ -323,6 +326,11 @@ function onNewCandle(candle) {
 
   // Recompute indicators
   recomputeIndicators();
+
+  // Sync volume profiles to all accounts (prevents stale reference after recompute)
+  for (const [, acct] of Object.entries(accounts)) {
+    acct.extra.volumeProfiles = volumeProfiles;
+  }
 
   const i = candles.length - 1;
   if (i < 200) return; // need warmup
