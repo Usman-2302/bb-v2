@@ -327,8 +327,22 @@ function onNewCandle(candle) {
   const i = candles.length - 1;
   if (i < 200) return; // need warmup
 
+  // Refresh pools every 50 candles (prevents pool expiry starvation)
+  if (candles.length % 50 === 0) {
+    for (const [, acct] of Object.entries(accounts)) {
+      // Clear expired pools and re-detect fresh ones
+      acct.activeZones = [];
+      acct.extra.poolActivationPtr = 0;
+      acct.activeZones = acct.strategy.detectZones(candles, atr14, rvolVals, LSO_CONFIG, {
+        extra: acct.extra, cfg: LSO_CONFIG, symbol: SYMBOL, timeframe: TIMEFRAME,
+        gates: { regime: false, oi: false, killzone: false, macro: false },
+        cvdVals, atr14, rvolVals, candles,
+      });
+    }
+    console.log(`[POOL] Refreshed pools @ candle ${candles.length} — ${accounts.SNIPER.extra.allPools?.length || 0} pools found`);
+  }
+
   // Process for both accounts
-  // Reset poolActivationPtrs for stream processing
   for (const [, acct] of Object.entries(accounts)) {
     processCandleForAccount(acct, i);
   }
