@@ -42,6 +42,24 @@ const { checkLSORangingTimeExhaustion } = require('../strategies/lso');
 const SYMBOL = 'btcusdt';
 const TIMEFRAME = '15m';
 const INITIAL_CAPITAL = 10000;
+const DEBUG_MODE = process.env.BB_DEBUG === '1';  // set BB_DEBUG=1 in .env to enable
+
+// ── Debug logger ───────────────────────────────────────────────────
+function debug(acct, msg) {
+  if (!DEBUG_MODE) return;
+  const label = acct ? `[DEBUG:${acct.config.name}]` : '[DEBUG]';
+  console.log(`${label} ${msg}`);
+}
+function debugAll(msg) { debug(null, msg); }
+
+// ── Regime drift tracker ───────────────────────────────────────────
+let lastRegime = null;
+function checkRegimeDrift(regime, rvol, atrPct) {
+  if (regime !== lastRegime && lastRegime !== null) {
+    console.log(`[DRIFT] Regime: ${lastRegime} → ${regime} | RVOL=${rvol?.toFixed(2)} | ATR%=${atrPct?.toFixed(3)}%`);
+  }
+  lastRegime = regime;
+}
 
 // Account A: LETHAL (Phase D12) — trend-focused
 const CONFIG_SNIPER = {
@@ -195,6 +213,15 @@ function processCandleForAccount(acct, candleIndex) {
     strategy.onCandleStart(ctx);
   }
 
+  // Pool distance: log nearest 3 pools every 24 candles
+  if (DEBUG_MODE && activeZones.length > 0 && candles.length % 24 === 0) {
+    const distances = activeZones
+      .map(p => ({ level: p.level, dist: Math.abs(candle.close - p.level) / candle.close * 100 }))
+      .sort((a,b) => a.dist - b.dist)
+      .slice(0, 3);
+    debug(acct, `${activeZones.length} active pools | Nearest: $${distances[0]?.level?.toFixed(0)} (${distances[0]?.dist?.toFixed(2)}% away) | $${distances[1]?.level?.toFixed(0)} (${distances[1]?.dist?.toFixed(2)}%) | $${distances[2]?.level?.toFixed(0)} (${distances[2]?.dist?.toFixed(2)}%)`);
+  }
+
   if (activeZones.length === 0) return;
   if (acct.tradedCandles.has(i)) return;
 
@@ -204,29 +231,43 @@ function processCandleForAccount(acct, candleIndex) {
     const signal = strategy.checkEntry(zone, candle, ctx);
     if (!signal) continue;
 
+    // ── Missed Setup Auditor: track why this sweep might fail ──────
+    let auditReason = null;
+
     // Consume pool
     if (strategy.onTradeOpened) strategy.onTradeOpened(signal, zone, activeZones);
 
     // Gate 7
     if (strategy.gate7) {
       const g7 = strategy.gate7(candle, cvdVals, i, { ...ctx, extra });
-      if (!g7.pass) { acct.cvdFiltered++; break; }
+      if (!g7.pass) { auditReason = `Gate7:${g7.reason}`; acct.cvdFiltered++; }
     }
 
-    // Validate signal
-    if (strategy.validateSignal) {
+    // Validate signal (only if Gate 7 passed)
+    if (!auditReason && strategy.validateSignal) {
       const v = strategy.validateSignal(signal, candle, i, { ...ctx, extra });
-      if (!v.accept) { acct.cvdFiltered++; break; }
+      if (!v.accept) { auditReason = `Validate:${v.reason}`; acct.cvdFiltered++; }
+    }
+
+    if (auditReason) {
+      debug(acct, `SWEEP @ $${candle.close.toFixed(0)} pool=$${zone.level?.toFixed(0)} → BLOCKED: ${auditReason} | regime=${candle.regime} rvol=${rvolVals[i]?.toFixed(2)}`);
+      break;
     }
 
     const entryPrice = signal.limitPrice;
     const stopPrice = signal.stopPrice;
     const riskDist = Math.abs(entryPrice - stopPrice);
-    if (riskDist <= 0) continue;
+    if (riskDist <= 0) {
+      debug(acct, `SWEEP @ $${candle.close.toFixed(0)} pool=$${zone.level?.toFixed(0)} → BLOCKED: riskDist=0`);
+      continue;
+    }
 
     // DOL
     const dolResult = findDOL(candles, i, entryPrice, stopPrice, signal.side || 'LONG', [], atr14);
-    if (!dolResult) continue;
+    if (!dolResult) {
+      debug(acct, `SWEEP @ $${candle.close.toFixed(0)} pool=$${zone.level?.toFixed(0)} → BLOCKED: no DOL found`);
+      continue;
+    }
 
     // Fill simulation
     const fillResult = simulateLimitFill(candle, { side: signal.side || 'LONG', limitPrice: entryPrice }, 'LSO', 'BTCUSDT', atr14[i]);
@@ -362,6 +403,9 @@ function onNewCandle(candle) {
   const scalperOpen = accounts.SCALPER.openTrades.length;
   const sniperCap = accounts.SNIPER.equity.capital;
   const scalperCap = accounts.SCALPER.equity.capital;
+
+  // Regime drift check
+  checkRegimeDrift(regime, rvolVals[i], atr14[i] ? (atr14[i]/candle.close*100) : null);
 
   console.log(`[${time}] ${regime.padEnd(8)} Close=$${candle.close.toFixed(0)} | SNIPER: $${sniperCap.toFixed(0)} (${sniperOpen} open) | SCALPER: $${scalperCap.toFixed(0)} (${scalperOpen} open)`);
 
@@ -617,6 +661,7 @@ async function main() {
   console.log('Account A (SNIPER):  LETHAL D12 — Trend-focused');
   console.log('Account B (SCALPER): REFINED D13 — Range-focused');
   console.log('');
+  if (DEBUG_MODE) console.log('🐛 DEBUG MODE enabled (BB_DEBUG=1). Missed setups + pool distances logged.');
   console.log('Regime Umpire reports every 24 candles (6 hours).');
   console.log('Log: logs/umpire.log\n');
 
