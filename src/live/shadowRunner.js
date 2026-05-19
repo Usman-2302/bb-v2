@@ -34,6 +34,8 @@ const { processOpenTrades } = require('../backtest/tradeManager');
 const { findDOL } = require('../utils/dolFinder');
 const { LSO: LSO_CONFIG, TRADE, SIZING } = require('../../config');
 const { checkLSORangingTimeExhaustion } = require('../strategies/lso');
+const { computeFromContext }         = require('./convictionScore');
+const { checkCircuitBreaker }        = require('./circuitBreaker');
 
 // ────────────────────────────────────────────────────────────────────
 // CONFIGURATIONS
@@ -115,6 +117,67 @@ function createAccountState(config) {
     cvdFiltered: 0,
     tradedCandles: new Set(),
   };
+}
+
+// ────────────────────────────────────────────────────────────────────
+// STRUCTURAL CORRELATION FIX — Shared Order Book
+// Prevents SNIPER and SCALPER from placing orders at the same price
+// level (±0.05%). The account in its preferred regime gets priority.
+// ────────────────────────────────────────────────────────────────────
+
+const globalOrderBook = {
+  // priceKey (rounded to 0.05% bucket) → { sniper: bool, scalper: bool, price: number }
+  entries: {},
+
+  /** Check if another account already has an order at this price */
+  hasConflict(price, myName) {
+    const bucket = Math.round(price * 2000) / 2000; // 0.05% precision
+    const entry = this.entries[bucket];
+    if (!entry) return false;
+    const otherName = myName === 'SNIPER' ? 'SCALPER' : 'SNIPER';
+    return entry[otherName.toLowerCase()] === true;
+  },
+
+  /** Register an order at this price */
+  register(price, accountName) {
+    const bucket = Math.round(price * 2000) / 2000;
+    if (!this.entries[bucket]) {
+      this.entries[bucket] = { sniper: false, scalper: false, price };
+    }
+    this.entries[bucket][accountName.toLowerCase()] = true;
+  },
+
+  /** Clear all orders (called after candle close) */
+  clear() {
+    this.entries = {};
+  },
+};
+
+/**
+ * Determine which account gets priority for a price level in the current regime.
+ * SNIPER (trend-focused) gets priority in BULL/BEAR.
+ * SCALPER (range-focused) gets priority in RANGING/ZOMBIE.
+ */
+function getPriorityAccount(regime) {
+  if (regime === 'RANGING' || regime === 'RANGING_ZOMBIE') return 'SCALPER';
+  return 'SNIPER'; // BULL, BEAR, CRISIS → SNIPER gets first claim
+}
+
+// Track conviction score vs old multiplier for A/B comparison
+const convictionComparisonLog = [];
+function logConvictionComparison(accountName, oldMult, cs, candleIdx) {
+  convictionComparisonLog.push({
+    time: new Date().toISOString(),
+    account: accountName,
+    candle: candleIdx,
+    oldMultiplier: oldMult,
+    convictionScore: cs.score,
+    csSizeMult: cs.sizeMult,
+    csVerdict: cs.verdict,
+    breakdown: cs.breakdown,
+  });
+  // Keep only last 200 comparisons
+  if (convictionComparisonLog.length > 200) convictionComparisonLog.shift();
 }
 
 // ────────────────────────────────────────────────────────────────────
@@ -273,8 +336,38 @@ function processCandleForAccount(acct, candleIndex) {
     const fillResult = simulateLimitFill(candle, { side: signal.side || 'LONG', limitPrice: entryPrice }, 'LSO', 'BTCUSDT', atr14[i]);
     if (!fillResult.fill) continue;
 
-    // Sizing
-    const sizeMult = strategy.getSizeMultiplier ? strategy.getSizeMultiplier(signal, candle, { ...ctx, extra }) : 1.0;
+    // ── Order Book Conflict Check (Structural Correlation Fix) ──────
+    // Prevent both accounts entering the same price level.
+    // The account with regime priority wins; the other skips.
+    const orderPrice = signal.limitPrice;
+    if (globalOrderBook.hasConflict(orderPrice, acct.config.name)) {
+      const priority = getPriorityAccount(regime);
+      if (acct.config.name !== priority) {
+        debug(acct, `SWEEP @ $${candle.close.toFixed(0)} pool=$${zone.level?.toFixed(0)} → BLOCKED: order_book_conflict (${priority} has priority in ${regime})`);
+        break; // lower-priority account skips — pool already consumed
+      }
+      // Priority account proceeds even if other account already registered
+    }
+
+    // ── Conviction Score (replaces old multiplier chain) ─────────────
+    // Compute unified 0-1 conviction score from gate results
+    const kzCtx = { inKillzone: false }; // shadow runner doesn't use killzone gates currently
+    const csResult = computeFromContext({ extra }, rvolVals[i], kzCtx.inKillzone);
+
+    // Log conviction score vs old multiplier for A/B comparison
+    const oldSizeMult = strategy.getSizeMultiplier
+      ? strategy.getSizeMultiplier(signal, candle, { ...ctx, extra })
+      : 1.0;
+    logConvictionComparison(acct.config.name, oldSizeMult, csResult, i);
+
+    // Skip if conviction score below minimum threshold
+    if (csResult.verdict === 'SKIP') {
+      debug(acct, `SWEEP @ $${candle.close.toFixed(0)} pool=$${zone.level?.toFixed(0)} → BLOCKED: conviction_skip (CS=${csResult.score.toFixed(2)})`);
+      break;
+    }
+
+    // Use conviction score size multiplier
+    const sizeMult = csResult.sizeMult;
     const riskAmount = INITIAL_CAPITAL * SIZING.baseRisk * sizeMult;
     const rawSize = riskAmount / riskDist;
     const size = simulatePositionFill(rawSize, rvolVals[i]);
@@ -302,12 +395,18 @@ function processCandleForAccount(acct, candleIndex) {
       entryTimestamp: candle.openTime, entryCandle: i,
       notionalValue: size * entryPrice, entryCostPct: 0.0004,
       inKillzone: false, kzSizeMult: 1.0, dolTier: dolResult.tier, dolType: dolResult.type,
+      convictionScore: csResult.score,          // NEW: conviction score
+      convictionVerdict: csResult.verdict,       // NEW: SKIP/STANDARD/STRONG
+      csBreakdown: csResult.breakdown,           // NEW: sub-score breakdown
       ...extraFields,
     });
 
     openTrades.push(trade);
     acct.tradedCandles.add(i);
     acct.sweepsDetected++;
+
+    // Register order in shared order book (Structural Correlation Fix)
+    globalOrderBook.register(entryPrice, acct.config.name);
 
     break; // one trade per candle
   }
@@ -340,7 +439,29 @@ function umpireReport() {
     })();
     const avgRR = trades > 0 ? (totalPnl / trades).toFixed(2) : 'N/A';
 
-    lines.push(`  ${name.padEnd(10)} Cap=$${eq.capital.toFixed(0)} | Trades=${trades} | WR=${wr}% | PF=${pf} | AvgRR=$${avgRR} | DD=${(eq.maxDrawdown*100).toFixed(2)}%`);
+    // Conviction score averages for recent trades
+    const recentCS = acct.closedTrades.slice(-20).filter(t => t.convictionScore != null);
+    const avgCS = recentCS.length > 0
+      ? (recentCS.reduce((s, t) => s + t.convictionScore, 0) / recentCS.length).toFixed(3)
+      : 'N/A';
+    const skippedCS = acct.closedTrades.filter(t => t.convictionVerdict === 'SKIP').length;
+
+    lines.push(`  ${name.padEnd(10)} Cap=$${eq.capital.toFixed(0)} | Trades=${trades} | WR=${wr}% | PF=${pf} | AvgRR=$${avgRR} | DD=${(eq.maxDrawdown*100).toFixed(2)}% | avgCS=${avgCS}`);
+  }
+
+  // Conviction Score comparison summary
+  if (convictionComparisonLog.length > 0) {
+    const sniperCS = convictionComparisonLog.filter(c => c.account === 'SNIPER');
+    const scalperCS = convictionComparisonLog.filter(c => c.account === 'SCALPER');
+    const sniperAvg = sniperCS.length > 0
+      ? (sniperCS.reduce((s, c) => s + c.convictionScore, 0) / sniperCS.length).toFixed(3)
+      : 'N/A';
+    const scalperAvg = scalperCS.length > 0
+      ? (scalperCS.reduce((s, c) => s + c.convictionScore, 0) / scalperCS.length).toFixed(3)
+      : 'N/A';
+    const sniperSkips = sniperCS.filter(c => c.csSizeMult === 0).length;
+    const scalperSkips = scalperCS.filter(c => c.csSizeMult === 0).length;
+    lines.push(`  CS_COMPARE SNIPER_avgCS=${sniperAvg} (${sniperSkips} skips) | SCALPER_avgCS=${scalperAvg} (${scalperSkips} skips)`);
   }
 
   // Determine leader
@@ -395,6 +516,14 @@ function onNewCandle(candle) {
   for (const [, acct] of Object.entries(accounts)) {
     processCandleForAccount(acct, i);
   }
+
+  // ── Circuit Breaker Check (logging only) ──────────────────────────
+  for (const [name, acct] of Object.entries(accounts)) {
+    checkCircuitBreaker(name, acct, candles.length);
+  }
+
+  // ── Clear shared order book (fresh book each candle) ──────────────
+  globalOrderBook.clear();
 
   // Log
   const regime = candle.regime || 'RANGING';

@@ -144,6 +144,8 @@ function createLSOStrategy(extra) {
       }
       if (variant === 'CVD_ZSCORE') {
         const zr = checkCVDVelocityGate(i, cvdVals, ctx.cfg.cvdVelocityZscoreThreshold||2.5, ctx.cfg.cvdVelocityLookback||96);
+        // Store z-score for conviction score computation (feat/conviction-correlation)
+        ctx.extra._cvdZscore = zr.zscore || 0;
         // Phase D9/D13 — Tiered CVD Velocity Gate
         // Tier 1: z ≥ 2.5 → pass at 1.0x size
         // Tier 2: 1.5 ≤ z < 2.5 AND RVOL > threshold → pass at 0.7x size
@@ -179,16 +181,20 @@ function createLSOStrategy(extra) {
         }
       }
       // Phase D9 — Gate VP: Volume Profile structural confirmation (HARD gate)
+      ctx.extra._vpResult = { pass: true }; // default
       if (ex.gateVP && ex.volumeProfiles) {
         const vpResult = checkVolumeProfileGate(candle, candle.low, candle.close, ex.volumeProfiles, i);
+        ctx.extra._vpResult = vpResult; // store for conviction score (feat/conviction-correlation)
         if (!vpResult.pass) { cvdFiltered++; return { accept: false, reason: vpResult.reason }; }
       }
       // Phase D9 — 4H Trend: stored as size multiplier, NOT a hard gate
       // Bullish → 1.0x, Bearish → BLOCK (multiplier=0), Neutral → 0.5x
       ctx.extra._4hMultiplier = 1.0;
+      ctx.extra._trend4hState = 'UNKNOWN'; // default
       if (ex.gate4HTrend) {
         const trendResult = check4HTrendBullish(ctx.candles, i);
         ctx.extra._4hMultiplier = trendResult.multiplier;
+        ctx.extra._trend4hState = trendResult.state; // store for conviction score
         if (trendResult.multiplier === 0) {
           cvdFiltered++;
           return { accept: false, reason: `4h_${trendResult.state}` };
@@ -200,11 +206,16 @@ function createLSOStrategy(extra) {
     getSizeMultiplier(signal, candle, ctx) {
       let mult = 1.0;
       // OB confluence: 1.3× when sweep inside active OB zone
+      ctx.extra._insideOB = false; // default for conviction score
       if (ctx.extra.obConfluenceEnabled !== false) {
         const obs = ctx.extra.activeOBs;
         if (obs && obs.length) {
           const oc = checkOBConfluence(candle, obs);
-          if (oc.insideOB) { obConfluenceHits++; mult *= 1.3; }
+          if (oc.insideOB) {
+            obConfluenceHits++;
+            mult *= 1.3;
+            ctx.extra._insideOB = true; // store for conviction score (feat/conviction-correlation)
+          }
         }
       }
       // 4H Trend multiplier (from validateSignal)
