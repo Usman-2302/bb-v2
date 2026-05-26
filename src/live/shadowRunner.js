@@ -85,6 +85,12 @@ const CONFIG_SCALPER = {
   timeBreakeven: { enabled: true, checkFn: checkLSORangingTimeExhaustion },
   rvolThreshold: 2.2,                  // relaxed RVOL in ranges
   useRangeTP2: true,                   // VAH/VAL TP2
+  // SCALPER RANGING relaxations (Phase feat/conviction-correlation)
+  // 6-day live data: 100% sweeps blocked by CVD_ZSCORE in low-vol RANGING.
+  // Relaxed thresholds let SCALPER capture 3-5 quality trades/week in ranges.
+  // SNIPER keeps strict defaults (z≥1.5, RVOL>2.2/3.0) — not affected.
+  scalperRangingZscoreMin: 1.0,        // Tier 2 z-score min in RANGING (relaxed from 1.5)
+  scalperRangingRvolMin: 1.5,          // Tier 2 RVOL min in RANGING (relaxed from 2.2)
 };
 
 // ────────────────────────────────────────────────────────────────────
@@ -232,6 +238,10 @@ function initAccount(acct) {
     gate4HTrend: cfg.gate4HTrend,
     _rvolThreshold: cfg.rvolThreshold,
     _useRangeTP2: cfg.useRangeTP2,
+    // SCALPER RANGING relaxations (feat/conviction-correlation)
+    // Only set for SCALPER — SNIPER config doesn't have these, so gate7 uses defaults
+    _scalperRangingZscoreMin: cfg.scalperRangingZscoreMin,
+    _scalperRangingRvolMin: cfg.scalperRangingRvolMin,
     allPools: [],
     poolActivationPtr: 0,
   };

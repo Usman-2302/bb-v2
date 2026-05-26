@@ -155,13 +155,22 @@ function createLSOStrategy(extra) {
           ctx.extra._cvdTier = 1;
           return { pass: true, tier: 1, zscore: zr.zscore };
         }
-        if (zr.zscore != null && zr.zscore >= 1.5) {
-          const regime = ctx.candles[i].regime || 'RANGING';
-          const rvolThreshold = (regime === 'RANGING' || regime === 'RANGING_ZOMBIE') ? 2.2 : 3.0;
+        // Tier 2: lower z-score bar + RVOL confirmation
+        // Thresholds from config.js LSO block (with SCALPER RANGING overrides via extra)
+        const isRanging = (ctx.candles[i].regime || 'RANGING') === 'RANGING'
+          || (ctx.candles[i].regime || 'RANGING') === 'RANGING_ZOMBIE';
+        const tier2Zmin = isRanging
+          ? (ctx.extra._scalperRangingZscoreMin || ctx.cfg.cvdTier2ZscoreMin || 1.5)
+          : (ctx.cfg.cvdTier2ZscoreMin || 1.5);
+        const tier2Rvol = isRanging
+          ? (ctx.extra._scalperRangingRvolMin || ctx.cfg.cvdTier2RvolRanging || 2.2)
+          : (ctx.cfg.cvdTier2RvolTrending || 3.0);
+
+        if (zr.zscore != null && zr.zscore >= tier2Zmin) {
           const rvol = ctx.rvolVals[i];
-          if (rvol > rvolThreshold) {
+          if (rvol > tier2Rvol) {
             ctx.extra._cvdTier = 2;
-            return { pass: true, tier: 2, zscore: zr.zscore };
+            return { pass: true, tier: 2, zscore: zr.zscore, tier2Zmin, tier2Rvol };
           }
         }
         cvdFiltered++;

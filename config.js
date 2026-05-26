@@ -290,6 +290,19 @@ const LSO = {
   cvdVelocityZscoreThreshold: 2.5,
   cvdVelocityLookback: 96,  // 24H of 15m candles for baseline calculation
 
+  // Tier 2 CVD gate fallback (when z-score < 2.5, try lower bar with RVOL)
+  // Used by both SNIPER and SCALPER. SCALPER overrides via extra._scalperRanging*
+  cvdTier2ZscoreMin: 1.5,         // minimum z-score for Tier 2 pass (Tier 1 = 2.5)
+  cvdTier2RvolRanging: 2.2,       // RVOL threshold for Tier 2 in RANGING/ZOMBIE
+  cvdTier2RvolTrending: 3.0,      // RVOL threshold for Tier 2 in BULL/BEAR
+
+  // SCALPER RANGING relaxations (Phase feat/conviction-correlation)
+  // 6-day live data: 100% sweeps blocked by CVD_ZSCORE in low-vol RANGING.
+  // Relaxed thresholds let SCALPER capture 3-5 quality trades/week in ranges.
+  // SNIPER is NOT affected — keeps strict thresholds for trend-following.
+  scalperRangingZscoreMin: 1.0,   // relaxed from 1.5
+  scalperRangingRvolMin: 1.5,     // relaxed from 2.2
+
   // Sweep candle RVOL filter (Gemini D8 Round 3 — toxic fill floor fix)
   // Require minimum RVOL on the sweep candle itself.
   // A genuine institutional sweep has above-average volume.
