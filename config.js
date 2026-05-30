@@ -441,6 +441,24 @@ const MACRO = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// GATE ADAPTIVE THRESHOLDS
+// Regime-adaptive scaling for entry gates.
+// Source: Phase feat/conviction-correlation — 10-day live data analysis
+// ─────────────────────────────────────────────────────────────────────────────
+
+const GATES = {
+  // Gate 7 (CVD Velocity) regime-adaptive scaling
+  // In RANGING markets, CVD delta and std compress simultaneously,
+  // keeping z-scores flat regardless of sweep quality. A static 2.5σ
+  // threshold becomes unreachable, blocking 100% of sweeps.
+  //
+  // The multiplier reduces the Tier 1 z-score threshold in RANGING.
+  // The floor prevents the threshold from dropping below statistical significance.
+  gate7_range_multiplier: 0.5,    // 50% reduction in RANGING (2.5 → 1.25)
+  gate7_range_zscore_floor: 1.0,  // never drop below z=1.0 (still 1σ above mean)
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // BACKTEST ENGINE
 // Source: backtestplan.md lines 194-408 (Step 0.4)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -584,6 +602,7 @@ module.exports = {
   SESSIONS,
   TRADE,
   MACRO,
+  GATES,
   ENGINE,
   MONITORING,
   SYMBOL_STRATEGY_POLICY,

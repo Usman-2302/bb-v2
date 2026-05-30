@@ -17,7 +17,7 @@ const { isBullishSweep, buildBullishLSOSignal, checkOBConfluence,
         checkVolumeProfileGate, check4HTrendBullish } = require('../strategies/lso');
 const { detectBullishOBs, updateOBStatus }       = require('../strategies/ob');
 const { isSweepCandle }                          = require('../indicators/cvd');
-const { LSO: LSO_CONFIG }                        = require('../../config');
+const { LSO: LSO_CONFIG, GATES }                  = require('../../config');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Strategy descriptor factory (shared by runLSOBacktest and the adapter)
@@ -143,22 +143,33 @@ function createLSOStrategy(extra) {
         return { pass: true };
       }
       if (variant === 'CVD_ZSCORE') {
-        const zr = checkCVDVelocityGate(i, cvdVals, ctx.cfg.cvdVelocityZscoreThreshold||2.5, ctx.cfg.cvdVelocityLookback||96);
+        // Determine if we're in a ranging regime (affects threshold scaling)
+        const isRanging = (ctx.candles[i].regime || 'RANGING') === 'RANGING'
+          || (ctx.candles[i].regime || 'RANGING') === 'RANGING_ZOMBIE';
+
+        // Regime-adaptive Tier 1 threshold (Phase feat/conviction-correlation)
+        // In RANGING markets, CVD delta and std compress simultaneously,
+        // keeping z-scores flat regardless of sweep quality. A static 2.5σ
+        // threshold becomes unreachable. Apply multiplier with floor.
+        const baseTier1 = ctx.cfg.cvdVelocityZscoreThreshold || 2.5;
+        const tier1Threshold = isRanging
+          ? Math.max(baseTier1 * GATES.gate7_range_multiplier, GATES.gate7_range_zscore_floor)
+          : baseTier1;
+
+        if (isRanging && process.env.BB_DEBUG === '1') {
+          console.log(`[DEBUG:GATE7] Adaptive Range Mode. z-threshold: ${baseTier1} → ${tier1Threshold} (mult=${GATES.gate7_range_multiplier}, floor=${GATES.gate7_range_zscore_floor})`);
+        }
+
+        const zr = checkCVDVelocityGate(i, cvdVals, tier1Threshold, ctx.cfg.cvdVelocityLookback||96);
         // Store z-score for conviction score computation (feat/conviction-correlation)
         ctx.extra._cvdZscore = zr.zscore || 0;
-        // Phase D9/D13 — Tiered CVD Velocity Gate
-        // Tier 1: z ≥ 2.5 → pass at 1.0x size
-        // Tier 2: 1.5 ≤ z < 2.5 AND RVOL > threshold → pass at 0.7x size
-        //   RVOL threshold is regime-specific: 3.0× in trending, 2.2× in RANGING
-        //   Ranging markets have lower "breakout" volume — 2.2× is still significant vs noise
+        // Tier 1: z ≥ adaptive threshold → pass at 1.0x size
         if (zr.pass) {
           ctx.extra._cvdTier = 1;
           return { pass: true, tier: 1, zscore: zr.zscore };
         }
         // Tier 2: lower z-score bar + RVOL confirmation
         // Thresholds from config.js LSO block (with SCALPER RANGING overrides via extra)
-        const isRanging = (ctx.candles[i].regime || 'RANGING') === 'RANGING'
-          || (ctx.candles[i].regime || 'RANGING') === 'RANGING_ZOMBIE';
         const tier2Zmin = isRanging
           ? (ctx.extra._scalperRangingZscoreMin || ctx.cfg.cvdTier2ZscoreMin || 1.5)
           : (ctx.cfg.cvdTier2ZscoreMin || 1.5);
