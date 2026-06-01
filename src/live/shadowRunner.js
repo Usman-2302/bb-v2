@@ -78,7 +78,7 @@ const CONFIG_SNIPER = {
 // Account B: SCALPER (Phase D13) — range-focused
 const CONFIG_SCALPER = {
   name: 'SCALPER',
-  cvdGateVariant: 'CVD_ZSCORE',
+  cvdGateVariant: 'CVD',               // CVD plain — PF 1.353, +9.3% on 30d backtest
   gateVP: true,
   gate4HTrend: true,
   obConfluenceEnabled: true,
