@@ -296,33 +296,58 @@ const tier1Threshold = isRanging
 
 ---
 
-## CURRENT STATE (May 30)
+## Jun 1 — Gate7 CVD (plain) Switch (PROFITABLE)
 
-**Branch:** `feat/conviction-correlation` (commit `cb55a60`)
-**Server:** ubuntu@54.249.145.15
-**PM2:** bulletbrain-shadow — ONLINE
+**Commit:** `bea9cf0` — SCALPER switched from CVD_ZSCORE to CVD (plain)
 
-**Active configuration:**
+**Backtest evidence (2,880 candles, May 2 -> Jun 1):**
 
-| Parameter | SNIPER | SCALPER |
-|-----------|--------|---------|
-| CVD Gate | CVD_ZSCORE | CVD_ZSCORE |
-| Tier 1 z (RANGING) | 1.25 (adaptive) | 1.25 (adaptive) |
-| Tier 1 z (BULL/BEAR) | 2.5 | 2.5 |
-| Tier 2 z (RANGING) | 1.5 | 1.0 |
-| Tier 2 RVOL (RANGING) | 2.2 | 1.5 |
-| Gate VP | Yes | Yes |
-| 4H Trend | Yes | Yes |
-| OB Confluence | 1.3× (old chain) | 1.3× (old chain) |
-| Conviction Score | Active (replaces old sizing) | Active |
-| Circuit Breaker | Logging only | Logging only |
-| Order Book Fix | Active | Active |
-| Debug Mode | BB_DEBUG=1 | BB_DEBUG=1 |
+| Gate | Trades | WR | PF | DD | 30-Day PnL |
+|------|--------|-----|-----|-----|------------|
+| CVD_ZSCORE (old) | 4 | 50% | 0.193 | 4.12% | -$340 |
+| **CVD (plain) -> NEW** | **53** | **52.8%** | **1.353** | **2.66%** | **+$931 (+9.3%)** |
+| NONE (raw) | 13 | 38.5% | 0.684 | 3.23% | -$255 |
 
-**Expected next milestone:** SCALPER first trade within 24-48 hours with adaptive Gate7 active.
+**Decision:** CVD_ZSCORE mathematically broken in low-vol. CVD (plain) is the only profitable gate. SCALPER switched. SNIPER stays on CVD_ZSCORE for A/B.
 
 ---
 
-*Shadow Runner Master Log — Last updated: 2026-05-30*
-*Branch: feat/conviction-correlation (14 commits)*
-*Next review: After first trade executes*
+## Jun 1 — SMART Account (Signal-Strength Risk Scaling)
+
+**Commit:** `6cfd6b4` — Third account: SMART alongside SNIPER/SCALPER
+
+**Scoring Matrix (0-2 pts each, max 6):**
+| Pillar | +2 pts | +1 pt | +0 pt |
+|--------|--------|-------|-------|
+| RVOL | >= 2.0 | >= 1.5 | < 1.5 |
+| Pool Depth | >= 2x median | >= 1x median | < median |
+| Regime | BULL+LONG | RANGING | BEAR+LONG |
+
+**Score -> Risk Multiplier:**
+| 0-1 -> SKIP | 2 -> 0.5x | 3 -> 0.75x | 4 -> 1.0x | 5 -> 1.5x | 6 -> 2.0x |
+
+**Math validation:** +106% PnL vs flat 1% risk (Phase D9 proven).
+
+---
+
+## CURRENT STATE (Jun 1)
+
+**Branch:** `feat/conviction-correlation` (commit `6cfd6b4`)
+**Server:** ubuntu@54.249.145.15
+**PM2:** bulletbrain-shadow — ONLINE
+**Accounts:** SNIPER + SCALPER + SMART (3 accounts)
+
+| Account | Gate | Sizing | Expected Monthly |
+|---------|------|--------|-----------------|
+| SNIPER | CVD_ZSCORE | Conviction Score | ~0 trades (too strict) |
+| SCALPER | CVD (plain) | Conviction Score | ~50 trades, +9% |
+| **SMART** | **CVD (plain)** | **Score 0.5x-2.0x** | **~40 trades, +15%** |
+
+**Key files:**
+- `config.js` — LEVERAGE block with all scoring params
+- `src/live/signalScorer.js` — 156-line scoring engine
+- `src/live/shadowRunner.js` — SMART account + pool volume tracking
+
+---
+
+*Last updated: 2026-06-01 | Branch: feat/conviction-correlation (16 commits)*
