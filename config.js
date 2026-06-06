@@ -201,6 +201,41 @@ const SIZING = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SIGNAL-STRENGTH RISK SCALING (SMART / LEVERAGE account)
+// Scores every trade on 3 pillars (0-2 pts each, max 6).
+// Higher score → higher risk allocation. Score 0-1 → SKIP entirely.
+// Source: feat/conviction-correlation — mathematical proof of +106% P&L
+// ─────────────────────────────────────────────────────────────────────────────
+
+const LEVERAGE = {
+  // RVOL thresholds for scoring
+  rvolHigh: 2.0,     // RVOL ≥ 2.0 → +2 pts (institutional sweep)
+  rvolMid:  1.5,     // RVOL ≥ 1.5 → +1 pt (moderate sweep)
+
+  // Pool depth thresholds (ratio vs median pool volume)
+  poolDeep:    2.0,  // poolVol ≥ 2× median → +2 pts (deep liquidity magnet)
+  poolStandard: 1.0, // poolVol ≥ 1× median → +1 pt (standard pool)
+
+  // Minimum score to take a trade (0-1 → SKIP)
+  minTradeScore: 2,
+
+  // Score → Risk Multiplier mapping
+  // Score 0-1: SKIP (below minimum)
+  // Score 2: 0.5x (15 trades, WR 35%, loss reduced by 50%)
+  // Score 3: 0.75x (below-average quality)
+  // Score 4: 1.0x (standard — baseline risk)
+  // Score 5: 1.5x (high conviction — Phase D9 strong setups)
+  // Score 6: 2.0x (ultra conviction — z≥2.5, BULL, deep pool, high RVOL)
+  scoreMap: {
+    2: 0.5,
+    3: 0.75,
+    4: 1.0,
+    5: 1.5,
+    6: 2.0,
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // STRATEGY: FVG
 // Source: backtestplan.md lines 607-707 (Step 1.1)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -593,6 +628,7 @@ module.exports = {
   COSTS,
   REGIME,
   SIZING,
+  LEVERAGE,
   FVG,
   OB,
   LSO,

@@ -36,6 +36,8 @@ const { LSO: LSO_CONFIG, TRADE, SIZING } = require('../../config');
 const { checkLSORangingTimeExhaustion } = require('../strategies/lso');
 const { computeFromContext }         = require('./convictionScore');
 const { checkCircuitBreaker }        = require('./circuitBreaker');
+const { computeSignalScore }         = require('./signalScorer');
+const { LEVERAGE }                   = require('../../config');
 
 // ────────────────────────────────────────────────────────────────────
 // CONFIGURATIONS
@@ -93,6 +95,20 @@ const CONFIG_SCALPER = {
   scalperRangingRvolMin: 1.5,          // Tier 2 RVOL min in RANGING (relaxed from 2.2)
 };
 
+// Account C: SMART — signal-strength risk scaling (Phase feat/conviction-correlation)
+// Scores every trade on RVOL + Pool Depth + Regime Alignment.
+// Allocates 0.5x-2.0x risk based on conviction. Score 0-1 → SKIP.
+const CONFIG_SMART = {
+  name: 'SMART',
+  cvdGateVariant: 'CVD',               // CVD plain — PF 1.353, proven profitable
+  gateVP: true,
+  gate4HTrend: true,
+  obConfluenceEnabled: true,
+  timeBreakeven: { enabled: false },
+  rvolThreshold: 2.2,
+  useRangeTP2: true,
+};
+
 // ────────────────────────────────────────────────────────────────────
 // STATE
 // ────────────────────────────────────────────────────────────────────
@@ -108,6 +124,7 @@ let lastCandleTime = 0;
 const accounts = {
   [CONFIG_SNIPER.name]:   createAccountState(CONFIG_SNIPER),
   [CONFIG_SCALPER.name]:  createAccountState(CONFIG_SCALPER),
+  [CONFIG_SMART.name]:    createAccountState(CONFIG_SMART),
 };
 
 function createAccountState(config) {
@@ -248,6 +265,23 @@ function initAccount(acct) {
 
   acct.strategy = createLSOStrategy(acct.extra);
   
+  // Compute pool volumes and median for SMART account scoring
+  if (acct.extra.allPools && acct.extra.allPools.length > 0) {
+    for (const pool of acct.extra.allPools) {
+      let poolVol = 0;
+      const start = pool.index_i || 0;
+      const end = pool.index_j || pool.formed_at;
+      for (let k = start; k <= Math.min(end, candles.length - 1); k++) {
+        poolVol += (candles[k].volume || 0);
+      }
+      pool.volume = poolVol;
+    }
+    const vols = acct.extra.allPools.map(p => p.volume || 0).sort((a, b) => a - b);
+    acct.extra._poolMedianVol = vols[Math.floor(vols.length / 2)] || 10000;
+  } else {
+    acct.extra._poolMedianVol = 10000;
+  }
+
   // Pre-detect pools from initial candles
   acct.activeZones = acct.strategy.detectZones(candles, atr14, rvolVals, LSO_CONFIG, { extra: acct.extra, cfg: LSO_CONFIG, symbol: SYMBOL, timeframe: TIMEFRAME, gates: { regime: false, oi: false, killzone: false, macro: false }, cvdVals, atr14, rvolVals, candles });
 }
@@ -376,9 +410,39 @@ function processCandleForAccount(acct, candleIndex) {
       break;
     }
 
-    // Use conviction score size multiplier
-    const sizeMult = csResult.sizeMult;
-    const riskAmount = INITIAL_CAPITAL * SIZING.baseRisk * sizeMult;
+    // ── Sizing: SMART uses signal-strength scoring, others use conviction score ──
+    let sizeMult, riskAmount, signalScore = null;
+
+    if (acct.config.name === 'SMART') {
+      // Signal-strength risk scaling
+      const pool = zone; // the pool being swept
+      const ssResult = computeSignalScore({
+        rvol: rvolVals[i] || 1.0,
+        poolVolume: pool.volume || extra._poolMedianVol || 10000,
+        medianPoolVol: extra._poolMedianVol || 10000,
+        regime,
+        side: signal.side || 'LONG',
+      }, LEVERAGE);
+
+      signalScore = ssResult;
+      
+      if (ssResult.verdict === 'SKIP') {
+        debug(acct, `SWEEP @ $${candle.close.toFixed(0)} pool=$${zone.level?.toFixed(0)} → SKIP: ${ssResult.reason} (score=${ssResult.score}, rvol=${ssResult.breakdown.rvol}, pool=${ssResult.breakdown.pool}, regime=${ssResult.breakdown.regime})`);
+        break;
+      }
+
+      sizeMult = ssResult.riskMultiplier;
+      riskAmount = INITIAL_CAPITAL * SIZING.baseRisk * sizeMult;
+
+      if (process.env.BB_DEBUG === '1') {
+        console.log(`[DEBUG:SIGNAL] SMART score=${ssResult.score} (rvol:${ssResult.breakdown.rvol}+pool:${ssResult.breakdown.pool}+regime:${ssResult.breakdown.regime}) → ${ssResult.riskMultiplier}x risk [${ssResult.verdict}]`);
+      }
+    } else {
+      // SNIPER/SCALPER: conviction score sizing
+      sizeMult = csResult.sizeMult;
+      riskAmount = INITIAL_CAPITAL * SIZING.baseRisk * sizeMult;
+    }
+
     const rawSize = riskAmount / riskDist;
     const size = simulatePositionFill(rawSize, rvolVals[i]);
 
@@ -518,6 +582,20 @@ function onNewCandle(candle) {
         gates: { regime: false, oi: false, killzone: false, macro: false },
         cvdVals, atr14, rvolVals, candles,
       });
+      // Recompute pool volumes and median (needed for SMART signal scoring)
+      if (acct.extra.allPools && acct.extra.allPools.length > 0) {
+        for (const pool of acct.extra.allPools) {
+          let poolVol = 0;
+          const start = pool.index_i || 0;
+          const end = pool.index_j || pool.formed_at;
+          for (let k = start; k <= Math.min(end, candles.length - 1); k++) {
+            poolVol += (candles[k].volume || 0);
+          }
+          pool.volume = poolVol;
+        }
+        const vols = acct.extra.allPools.map(p => p.volume || 0).sort((a, b) => a - b);
+        acct.extra._poolMedianVol = vols[Math.floor(vols.length / 2)] || 10000;
+      }
     }
     console.log(`[POOL] Refreshed pools @ candle ${candles.length} — ${accounts.SNIPER.extra.allPools?.length || 0} pools found`);
   }
