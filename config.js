@@ -344,7 +344,7 @@ const LSO = {
   // Noise sweeps (random wicks) have low volume.
   // 0 = disabled (no RVOL filter on sweep candle)
   // 1.5 = require 1.5× average volume on sweep candle
-  sweepRvolMin: 1.2,  // minimum RVOL on sweep candle (0 = disabled)
+  sweepRvolMin: 0.8,  // minimum RVOL on sweep candle (relaxed from 1.2 - 3mo backtest)
 
   stopBuffer:      0.1,   // stop = sweep low - (N × ATR14_15m)
   shortStopBuffer: 0.07,  // tighter stop for short LSO (squeeze risk)

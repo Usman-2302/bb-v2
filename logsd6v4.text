@@ -1,0 +1,1005 @@
+ubuntu@ip-172-31-43-199:~$ pm2 logs bulletbrain-shadow --lines 1000
+[TAILING] Tailing last 1000 lines for [bulletbrain-shadow] process (change the value with --lines option)
+/home/ubuntu/.pm2/logs/bulletbrain-shadow-error.log last 1000 lines:
+/home/ubuntu/.pm2/logs/bulletbrain-shadow-out.log last 1000 lines:
+0|bulletbr |   SNIPER     Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SCALPER    Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SMART      Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   LEADER: TIED
+0|bulletbr | ═══════════════════════════════════════════════════
+0|bulletbr | [REST] Waiting for 2026-06-07T22:00:00.000Z to close at 2026-06-07T22:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-07T22:00:00.000Z close=$63666 (lastProcessed=1780869600000)
+0|bulletbr | [2026-06-07T22:00:00.000Z] RANGING  Close=$63666 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-07T22:15:00.000Z to close at 2026-06-07T22:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-07T22:15:00.000Z close=$62966 (lastProcessed=1780870500000)
+0|bulletbr | [POOL] Refreshed pools @ candle 650 — 61 pools found
+0|bulletbr | [2026-06-07T22:15:00.000Z] RANGING  Close=$62966 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-07T22:30:00.000Z to close at 2026-06-07T22:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-07T22:30:00.000Z close=$63125 (lastProcessed=1780871400000)
+0|bulletbr | [2026-06-07T22:30:00.000Z] RANGING  Close=$63125 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-07T22:45:00.000Z to close at 2026-06-07T22:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-07T22:45:00.000Z close=$62834 (lastProcessed=1780872300000)
+0|bulletbr | [2026-06-07T22:45:00.000Z] RANGING  Close=$62834 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-07T23:00:00.000Z to close at 2026-06-07T23:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-07T23:00:00.000Z close=$62980 (lastProcessed=1780873200000)
+0|bulletbr | [2026-06-07T23:00:00.000Z] RANGING  Close=$62980 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-07T23:15:00.000Z to close at 2026-06-07T23:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-07T23:15:00.000Z close=$63236 (lastProcessed=1780874100000)
+0|bulletbr | [DRIFT] Regime: RANGING → BULL | RVOL=0.72 | ATR%=0.867%
+0|bulletbr | [2026-06-07T23:15:00.000Z] BULL     Close=$63236 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-07T23:30:00.000Z to close at 2026-06-07T23:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-07T23:30:00.000Z close=$63266 (lastProcessed=1780875000000)
+0|bulletbr | [2026-06-07T23:30:00.000Z] BULL     Close=$63266 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-07T23:45:00.000Z to close at 2026-06-07T23:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-07T23:45:00.000Z close=$63309 (lastProcessed=1780875900000)
+0|bulletbr | [2026-06-07T23:45:00.000Z] BULL     Close=$63309 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T00:00:00.000Z to close at 2026-06-08T00:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T00:00:00.000Z close=$63199 (lastProcessed=1780876800000)
+0|bulletbr | [2026-06-08T00:00:00.000Z] BULL     Close=$63199 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T00:15:00.000Z to close at 2026-06-08T00:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T00:15:00.000Z close=$63473 (lastProcessed=1780877700000)
+0|bulletbr | [2026-06-08T00:15:00.000Z] BULL     Close=$63473 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T00:30:00.000Z to close at 2026-06-08T00:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T00:30:00.000Z close=$63687 (lastProcessed=1780878600000)
+0|bulletbr | [2026-06-08T00:30:00.000Z] BULL     Close=$63687 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T00:45:00.000Z to close at 2026-06-08T00:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T00:45:00.000Z close=$63602 (lastProcessed=1780879500000)
+0|bulletbr | [2026-06-08T00:45:00.000Z] BULL     Close=$63602 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T01:00:00.000Z to close at 2026-06-08T01:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T01:00:00.000Z close=$63042 (lastProcessed=1780880400000)
+0|bulletbr | [2026-06-08T01:00:00.000Z] BULL     Close=$63042 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T01:15:00.000Z to close at 2026-06-08T01:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T01:15:00.000Z close=$62797 (lastProcessed=1780881300000)
+0|bulletbr | [2026-06-08T01:15:00.000Z] BULL     Close=$62797 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T01:30:00.000Z to close at 2026-06-08T01:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T01:30:00.000Z close=$63093 (lastProcessed=1780882200000)
+0|bulletbr | [2026-06-08T01:30:00.000Z] BULL     Close=$63093 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T01:45:00.000Z to close at 2026-06-08T01:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T01:45:00.000Z close=$63180 (lastProcessed=1780883100000)
+0|bulletbr | [2026-06-08T01:45:00.000Z] BULL     Close=$63180 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T02:00:00.000Z to close at 2026-06-08T02:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T02:00:00.000Z close=$63098 (lastProcessed=1780884000000)
+0|bulletbr | [2026-06-08T02:00:00.000Z] BULL     Close=$63098 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T02:15:00.000Z to close at 2026-06-08T02:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T02:15:00.000Z close=$63081 (lastProcessed=1780884900000)
+0|bulletbr | [2026-06-08T02:15:00.000Z] BULL     Close=$63081 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T02:30:00.000Z to close at 2026-06-08T02:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T02:30:00.000Z close=$63029 (lastProcessed=1780885800000)
+0|bulletbr | [2026-06-08T02:30:00.000Z] BULL     Close=$63029 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T02:45:00.000Z to close at 2026-06-08T02:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T02:45:00.000Z close=$63097 (lastProcessed=1780886700000)
+0|bulletbr | [2026-06-08T02:45:00.000Z] BULL     Close=$63097 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T03:00:00.000Z to close at 2026-06-08T03:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T03:00:00.000Z close=$63253 (lastProcessed=1780887600000)
+0|bulletbr | [2026-06-08T03:00:00.000Z] BULL     Close=$63253 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T03:15:00.000Z to close at 2026-06-08T03:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T03:15:00.000Z close=$63122 (lastProcessed=1780888500000)
+0|bulletbr | [2026-06-08T03:15:00.000Z] BULL     Close=$63122 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T03:30:00.000Z to close at 2026-06-08T03:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T03:30:00.000Z close=$63120 (lastProcessed=1780889400000)
+0|bulletbr | [2026-06-08T03:30:00.000Z] BULL     Close=$63120 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T03:45:00.000Z to close at 2026-06-08T03:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T03:45:00.000Z close=$63102 (lastProcessed=1780890300000)
+0|bulletbr | [2026-06-08T03:45:00.000Z] BULL     Close=$63102 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr |
+0|bulletbr | ════ ════ REGIME UMPIRE @ 2026-06-08T04:00:04.490Z ════ ═════
+0|bulletbr |   Regime: BULL | Candles: 672
+0|bulletbr |   SNIPER     Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SCALPER    Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SMART      Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   LEADER: TIED
+0|bulletbr | ═══════════════════════════════════════════════════
+0|bulletbr | [REST] Waiting for 2026-06-08T04:00:00.000Z to close at 2026-06-08T04:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T04:00:00.000Z close=$62982 (lastProcessed=1780891200000)
+0|bulletbr | [2026-06-08T04:00:00.000Z] BULL     Close=$62982 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T04:15:00.000Z to close at 2026-06-08T04:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T04:15:00.000Z close=$62910 (lastProcessed=1780892100000)
+0|bulletbr | [2026-06-08T04:15:00.000Z] BULL     Close=$62910 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T04:30:00.000Z to close at 2026-06-08T04:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T04:30:00.000Z close=$62677 (lastProcessed=1780893000000)
+0|bulletbr | [2026-06-08T04:30:00.000Z] BULL     Close=$62677 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T04:45:00.000Z to close at 2026-06-08T04:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T04:45:00.000Z close=$62655 (lastProcessed=1780893900000)
+0|bulletbr | [2026-06-08T04:45:00.000Z] BULL     Close=$62655 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T05:00:00.000Z to close at 2026-06-08T05:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T05:00:00.000Z close=$62551 (lastProcessed=1780894800000)
+0|bulletbr | [2026-06-08T05:00:00.000Z] BULL     Close=$62551 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T05:15:00.000Z to close at 2026-06-08T05:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T05:15:00.000Z close=$62704 (lastProcessed=1780895700000)
+0|bulletbr | [2026-06-08T05:15:00.000Z] BULL     Close=$62704 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T05:30:00.000Z to close at 2026-06-08T05:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T05:30:00.000Z close=$62447 (lastProcessed=1780896600000)
+0|bulletbr | [2026-06-08T05:30:00.000Z] BULL     Close=$62447 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T05:45:00.000Z to close at 2026-06-08T05:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T05:45:00.000Z close=$62741 (lastProcessed=1780897500000)
+0|bulletbr | [2026-06-08T05:45:00.000Z] BULL     Close=$62741 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T06:00:00.000Z to close at 2026-06-08T06:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T06:00:00.000Z close=$62915 (lastProcessed=1780898400000)
+0|bulletbr | [2026-06-08T06:00:00.000Z] BULL     Close=$62915 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T06:15:00.000Z to close at 2026-06-08T06:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T06:15:00.000Z close=$63040 (lastProcessed=1780899300000)
+0|bulletbr | [2026-06-08T06:15:00.000Z] BULL     Close=$63040 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T06:30:00.000Z to close at 2026-06-08T06:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T06:30:00.000Z close=$63003 (lastProcessed=1780900200000)
+0|bulletbr | [2026-06-08T06:30:00.000Z] BULL     Close=$63003 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T06:45:00.000Z to close at 2026-06-08T06:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T06:45:00.000Z close=$62959 (lastProcessed=1780901100000)
+0|bulletbr | [2026-06-08T06:45:00.000Z] BULL     Close=$62959 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T07:00:00.000Z to close at 2026-06-08T07:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T07:00:00.000Z close=$63059 (lastProcessed=1780902000000)
+0|bulletbr | [2026-06-08T07:00:00.000Z] BULL     Close=$63059 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T07:15:00.000Z to close at 2026-06-08T07:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T07:15:00.000Z close=$63152 (lastProcessed=1780902900000)
+0|bulletbr | [2026-06-08T07:15:00.000Z] BULL     Close=$63152 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T07:30:00.000Z to close at 2026-06-08T07:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T07:30:00.000Z close=$63082 (lastProcessed=1780903800000)
+0|bulletbr | [2026-06-08T07:30:00.000Z] BULL     Close=$63082 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T07:45:00.000Z to close at 2026-06-08T07:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T07:45:00.000Z close=$63260 (lastProcessed=1780904700000)
+0|bulletbr | [2026-06-08T07:45:00.000Z] BULL     Close=$63260 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T08:00:00.000Z to close at 2026-06-08T08:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T08:00:00.000Z close=$63160 (lastProcessed=1780905600000)
+0|bulletbr | [2026-06-08T08:00:00.000Z] BULL     Close=$63160 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T08:15:00.000Z to close at 2026-06-08T08:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T08:15:00.000Z close=$63073 (lastProcessed=1780906500000)
+0|bulletbr | [2026-06-08T08:15:00.000Z] BULL     Close=$63073 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T08:30:00.000Z to close at 2026-06-08T08:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T08:30:00.000Z close=$63137 (lastProcessed=1780907400000)
+0|bulletbr | [2026-06-08T08:30:00.000Z] BULL     Close=$63137 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T08:45:00.000Z to close at 2026-06-08T08:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T08:45:00.000Z close=$63101 (lastProcessed=1780908300000)
+0|bulletbr | [2026-06-08T08:45:00.000Z] BULL     Close=$63101 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T09:00:00.000Z to close at 2026-06-08T09:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T09:00:00.000Z close=$63307 (lastProcessed=1780909200000)
+0|bulletbr | [2026-06-08T09:00:00.000Z] BULL     Close=$63307 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T09:15:00.000Z to close at 2026-06-08T09:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T09:15:00.000Z close=$63355 (lastProcessed=1780910100000)
+0|bulletbr | [2026-06-08T09:15:00.000Z] BULL     Close=$63355 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T09:30:00.000Z to close at 2026-06-08T09:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T09:30:00.000Z close=$63333 (lastProcessed=1780911000000)
+0|bulletbr | [2026-06-08T09:30:00.000Z] BULL     Close=$63333 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T09:45:00.000Z to close at 2026-06-08T09:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T09:45:00.000Z close=$63470 (lastProcessed=1780911900000)
+0|bulletbr | [2026-06-08T09:45:00.000Z] BULL     Close=$63470 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr |
+0|bulletbr | ════ ════ REGIME UMPIRE @ 2026-06-08T10:00:04.183Z ════ ═════
+0|bulletbr |   Regime: BULL | Candles: 696
+0|bulletbr |   SNIPER     Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SCALPER    Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SMART      Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   LEADER: TIED
+0|bulletbr | ═══════════════════════════════════════════════════
+0|bulletbr | [REST] Waiting for 2026-06-08T10:00:00.000Z to close at 2026-06-08T10:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T10:00:00.000Z close=$63357 (lastProcessed=1780912800000)
+0|bulletbr | [2026-06-08T10:00:00.000Z] BULL     Close=$63357 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T10:15:00.000Z to close at 2026-06-08T10:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T10:15:00.000Z close=$63122 (lastProcessed=1780913700000)
+0|bulletbr | [2026-06-08T10:15:00.000Z] BULL     Close=$63122 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T10:30:00.000Z to close at 2026-06-08T10:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T10:30:00.000Z close=$63181 (lastProcessed=1780914600000)
+0|bulletbr | [2026-06-08T10:30:00.000Z] BULL     Close=$63181 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T10:45:00.000Z to close at 2026-06-08T10:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T10:45:00.000Z close=$63132 (lastProcessed=1780915500000)
+0|bulletbr | [POOL] Refreshed pools @ candle 700 — 72 pools found
+0|bulletbr | [2026-06-08T10:45:00.000Z] BULL     Close=$63132 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T11:00:00.000Z to close at 2026-06-08T11:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T11:00:00.000Z close=$63385 (lastProcessed=1780916400000)
+0|bulletbr | [2026-06-08T11:00:00.000Z] BULL     Close=$63385 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T11:15:00.000Z to close at 2026-06-08T11:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T11:15:00.000Z close=$63577 (lastProcessed=1780917300000)
+0|bulletbr | [2026-06-08T11:15:00.000Z] BULL     Close=$63577 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T11:30:00.000Z to close at 2026-06-08T11:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T11:30:00.000Z close=$63598 (lastProcessed=1780918200000)
+0|bulletbr | [2026-06-08T11:30:00.000Z] BULL     Close=$63598 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T11:45:00.000Z to close at 2026-06-08T11:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T11:45:00.000Z close=$63444 (lastProcessed=1780919100000)
+0|bulletbr | [2026-06-08T11:45:00.000Z] BULL     Close=$63444 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T12:00:00.000Z to close at 2026-06-08T12:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T12:00:00.000Z close=$62679 (lastProcessed=1780920000000)
+0|bulletbr | [2026-06-08T12:00:00.000Z] BULL     Close=$62679 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T12:15:00.000Z to close at 2026-06-08T12:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T12:15:00.000Z close=$63067 (lastProcessed=1780920900000)
+0|bulletbr | [2026-06-08T12:15:00.000Z] BULL     Close=$63067 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T12:30:00.000Z to close at 2026-06-08T12:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T12:30:00.000Z close=$63604 (lastProcessed=1780921800000)
+0|bulletbr | [2026-06-08T12:30:00.000Z] BULL     Close=$63604 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T12:45:00.000Z to close at 2026-06-08T12:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T12:45:00.000Z close=$63845 (lastProcessed=1780922700000)
+0|bulletbr | [2026-06-08T12:45:00.000Z] BULL     Close=$63845 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T13:00:00.000Z to close at 2026-06-08T13:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T13:00:00.000Z close=$63749 (lastProcessed=1780923600000)
+0|bulletbr | [2026-06-08T13:00:00.000Z] BULL     Close=$63749 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T13:15:00.000Z to close at 2026-06-08T13:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T13:15:00.000Z close=$63564 (lastProcessed=1780924500000)
+0|bulletbr | [2026-06-08T13:15:00.000Z] BULL     Close=$63564 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T13:30:00.000Z to close at 2026-06-08T13:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T13:30:00.000Z close=$63453 (lastProcessed=1780925400000)
+0|bulletbr | [2026-06-08T13:30:00.000Z] BULL     Close=$63453 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T13:45:00.000Z to close at 2026-06-08T13:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T13:45:00.000Z close=$63721 (lastProcessed=1780926300000)
+0|bulletbr | [2026-06-08T13:45:00.000Z] BULL     Close=$63721 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T14:00:00.000Z to close at 2026-06-08T14:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T14:00:00.000Z close=$63838 (lastProcessed=1780927200000)
+0|bulletbr | [2026-06-08T14:00:00.000Z] BULL     Close=$63838 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T14:15:00.000Z to close at 2026-06-08T14:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T14:15:00.000Z close=$63737 (lastProcessed=1780928100000)
+0|bulletbr | [2026-06-08T14:15:00.000Z] BULL     Close=$63737 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T14:30:00.000Z to close at 2026-06-08T14:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T14:30:00.000Z close=$63866 (lastProcessed=1780929000000)
+0|bulletbr | [2026-06-08T14:30:00.000Z] BULL     Close=$63866 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T14:45:00.000Z to close at 2026-06-08T14:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T14:45:00.000Z close=$63927 (lastProcessed=1780929900000)
+0|bulletbr | [2026-06-08T14:45:00.000Z] BULL     Close=$63927 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T15:00:00.000Z to close at 2026-06-08T15:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T15:00:00.000Z close=$64155 (lastProcessed=1780930800000)
+0|bulletbr | [2026-06-08T15:00:00.000Z] BULL     Close=$64155 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T15:15:00.000Z to close at 2026-06-08T15:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T15:15:00.000Z close=$63966 (lastProcessed=1780931700000)
+0|bulletbr | [2026-06-08T15:15:00.000Z] BULL     Close=$63966 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T15:30:00.000Z to close at 2026-06-08T15:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T15:30:00.000Z close=$63836 (lastProcessed=1780932600000)
+0|bulletbr | [2026-06-08T15:30:00.000Z] BULL     Close=$63836 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T15:45:00.000Z to close at 2026-06-08T15:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T15:45:00.000Z close=$63745 (lastProcessed=1780933500000)
+0|bulletbr | [DEBUG:SNIPER] 9 active pools | Nearest: $63042 (1.10% away) | $63036 (1.11%) | $63014 (1.15%)
+0|bulletbr | [DEBUG:SCALPER] 9 active pools | Nearest: $63042 (1.10% away) | $63036 (1.11%) | $63014 (1.15%)
+0|bulletbr | [DEBUG:SMART] 9 active pools | Nearest: $63042 (1.10% away) | $63036 (1.11%) | $63014 (1.15%)
+0|bulletbr | [2026-06-08T15:45:00.000Z] BULL     Close=$63745 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr |
+0|bulletbr | ════ ════ REGIME UMPIRE @ 2026-06-08T16:00:04.229Z ════ ═════
+0|bulletbr |   Regime: BULL | Candles: 720
+0|bulletbr |   SNIPER     Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SCALPER    Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SMART      Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   LEADER: TIED
+0|bulletbr | ═══════════════════════════════════════════════════
+0|bulletbr | [REST] Waiting for 2026-06-08T16:00:00.000Z to close at 2026-06-08T16:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T16:00:00.000Z close=$63763 (lastProcessed=1780934400000)
+0|bulletbr | [2026-06-08T16:00:00.000Z] BULL     Close=$63763 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T16:15:00.000Z to close at 2026-06-08T16:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T16:15:00.000Z close=$63837 (lastProcessed=1780935300000)
+0|bulletbr | [2026-06-08T16:15:00.000Z] BULL     Close=$63837 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T16:30:00.000Z to close at 2026-06-08T16:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T16:30:00.000Z close=$63655 (lastProcessed=1780936200000)
+0|bulletbr | [2026-06-08T16:30:00.000Z] BULL     Close=$63655 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T16:45:00.000Z to close at 2026-06-08T16:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T16:45:00.000Z close=$63497 (lastProcessed=1780937100000)
+0|bulletbr | [2026-06-08T16:45:00.000Z] BULL     Close=$63497 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T17:00:00.000Z to close at 2026-06-08T17:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T17:00:00.000Z close=$63323 (lastProcessed=1780938000000)
+0|bulletbr | [2026-06-08T17:00:00.000Z] BULL     Close=$63323 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T17:15:00.000Z to close at 2026-06-08T17:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T17:15:00.000Z close=$63599 (lastProcessed=1780938900000)
+0|bulletbr | [2026-06-08T17:15:00.000Z] BULL     Close=$63599 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T17:30:00.000Z to close at 2026-06-08T17:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T17:30:00.000Z close=$63347 (lastProcessed=1780939800000)
+0|bulletbr | [2026-06-08T17:30:00.000Z] BULL     Close=$63347 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T17:45:00.000Z to close at 2026-06-08T17:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T17:45:00.000Z close=$63519 (lastProcessed=1780940700000)
+0|bulletbr | [2026-06-08T17:45:00.000Z] BULL     Close=$63519 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T18:00:00.000Z to close at 2026-06-08T18:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T18:00:00.000Z close=$63561 (lastProcessed=1780941600000)
+0|bulletbr | [2026-06-08T18:00:00.000Z] BULL     Close=$63561 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T18:15:00.000Z to close at 2026-06-08T18:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T18:15:00.000Z close=$63613 (lastProcessed=1780942500000)
+0|bulletbr | [2026-06-08T18:15:00.000Z] BULL     Close=$63613 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T18:30:00.000Z to close at 2026-06-08T18:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T18:30:00.000Z close=$63462 (lastProcessed=1780943400000)
+0|bulletbr | [2026-06-08T18:30:00.000Z] BULL     Close=$63462 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T18:45:00.000Z to close at 2026-06-08T18:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T18:45:00.000Z close=$63438 (lastProcessed=1780944300000)
+0|bulletbr | [2026-06-08T18:45:00.000Z] BULL     Close=$63438 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T19:00:00.000Z to close at 2026-06-08T19:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T19:00:00.000Z close=$63393 (lastProcessed=1780945200000)
+0|bulletbr | [2026-06-08T19:00:00.000Z] BULL     Close=$63393 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T19:15:00.000Z to close at 2026-06-08T19:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T19:15:00.000Z close=$63502 (lastProcessed=1780946100000)
+0|bulletbr | [2026-06-08T19:15:00.000Z] BULL     Close=$63502 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T19:30:00.000Z to close at 2026-06-08T19:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T19:30:00.000Z close=$63457 (lastProcessed=1780947000000)
+0|bulletbr | [2026-06-08T19:30:00.000Z] BULL     Close=$63457 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T19:45:00.000Z to close at 2026-06-08T19:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T19:45:00.000Z close=$63346 (lastProcessed=1780947900000)
+0|bulletbr | [2026-06-08T19:45:00.000Z] BULL     Close=$63346 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T20:00:00.000Z to close at 2026-06-08T20:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T20:00:00.000Z close=$63224 (lastProcessed=1780948800000)
+0|bulletbr | [2026-06-08T20:00:00.000Z] BULL     Close=$63224 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T20:15:00.000Z to close at 2026-06-08T20:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T20:15:00.000Z close=$63151 (lastProcessed=1780949700000)
+0|bulletbr | [2026-06-08T20:15:00.000Z] BULL     Close=$63151 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T20:30:00.000Z to close at 2026-06-08T20:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T20:30:00.000Z close=$63365 (lastProcessed=1780950600000)
+0|bulletbr | [2026-06-08T20:30:00.000Z] BULL     Close=$63365 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T20:45:00.000Z to close at 2026-06-08T20:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T20:45:00.000Z close=$63459 (lastProcessed=1780951500000)
+0|bulletbr | [2026-06-08T20:45:00.000Z] BULL     Close=$63459 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T21:00:00.000Z to close at 2026-06-08T21:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T21:00:00.000Z close=$63692 (lastProcessed=1780952400000)
+0|bulletbr | [2026-06-08T21:00:00.000Z] BULL     Close=$63692 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T21:15:00.000Z to close at 2026-06-08T21:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T21:15:00.000Z close=$63686 (lastProcessed=1780953300000)
+0|bulletbr | [2026-06-08T21:15:00.000Z] BULL     Close=$63686 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T21:30:00.000Z to close at 2026-06-08T21:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T21:30:00.000Z close=$63802 (lastProcessed=1780954200000)
+0|bulletbr | [2026-06-08T21:30:00.000Z] BULL     Close=$63802 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T21:45:00.000Z to close at 2026-06-08T21:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T21:45:00.000Z close=$63691 (lastProcessed=1780955100000)
+0|bulletbr | [DEBUG:SNIPER] 3 active pools | Nearest: $63042 (1.02% away) | $63036 (1.03%) | $63014 (1.06%)
+0|bulletbr | [DEBUG:SCALPER] 3 active pools | Nearest: $63042 (1.02% away) | $63036 (1.03%) | $63014 (1.06%)
+0|bulletbr | [DEBUG:SMART] 3 active pools | Nearest: $63042 (1.02% away) | $63036 (1.03%) | $63014 (1.06%)
+0|bulletbr | [2026-06-08T21:45:00.000Z] BULL     Close=$63691 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr |
+0|bulletbr | ════ ════ REGIME UMPIRE @ 2026-06-08T22:00:03.793Z ════ ═════
+0|bulletbr |   Regime: BULL | Candles: 744
+0|bulletbr |   SNIPER     Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SCALPER    Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SMART      Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   LEADER: TIED
+0|bulletbr | ═══════════════════════════════════════════════════
+0|bulletbr | [REST] Waiting for 2026-06-08T22:00:00.000Z to close at 2026-06-08T22:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T22:00:00.000Z close=$63257 (lastProcessed=1780956000000)
+0|bulletbr | [2026-06-08T22:00:00.000Z] BULL     Close=$63257 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T22:15:00.000Z to close at 2026-06-08T22:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T22:15:00.000Z close=$63329 (lastProcessed=1780956900000)
+0|bulletbr | [2026-06-08T22:15:00.000Z] BULL     Close=$63329 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T22:30:00.000Z to close at 2026-06-08T22:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T22:30:00.000Z close=$63266 (lastProcessed=1780957800000)
+0|bulletbr | [2026-06-08T22:30:00.000Z] BULL     Close=$63266 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T22:45:00.000Z to close at 2026-06-08T22:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T22:45:00.000Z close=$63408 (lastProcessed=1780958700000)
+0|bulletbr | [2026-06-08T22:45:00.000Z] BULL     Close=$63408 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T23:00:00.000Z to close at 2026-06-08T23:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T23:00:00.000Z close=$63552 (lastProcessed=1780959600000)
+0|bulletbr | [2026-06-08T23:00:00.000Z] BULL     Close=$63552 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T23:15:00.000Z to close at 2026-06-08T23:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T23:15:00.000Z close=$63116 (lastProcessed=1780960500000)
+0|bulletbr | [POOL] Refreshed pools @ candle 750 — 83 pools found
+0|bulletbr | [2026-06-08T23:15:00.000Z] BULL     Close=$63116 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T23:30:00.000Z to close at 2026-06-08T23:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T23:30:00.000Z close=$63107 (lastProcessed=1780961400000)
+0|bulletbr | [DEBUG:SNIPER] SWEEP @ $63107 pool=$62988 → BLOCKED: Gate7:cvd_zs_CVD_VELOCITY_BELOW_THRESHOLD | regime=BULL rvol=0.50
+0|bulletbr | [DEBUG:SCALPER] SWEEP @ $63107 pool=$62988 → BLOCKED: Validate:sweep_rvol | regime=BULL rvol=0.50
+0|bulletbr | [DEBUG:SMART] SWEEP @ $63107 pool=$62988 → BLOCKED: Validate:sweep_rvol | regime=BULL rvol=0.50
+0|bulletbr | [2026-06-08T23:30:00.000Z] BULL     Close=$63107 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-08T23:45:00.000Z to close at 2026-06-08T23:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-08T23:45:00.000Z close=$63058 (lastProcessed=1780962300000)
+0|bulletbr | [2026-06-08T23:45:00.000Z] BULL     Close=$63058 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T00:00:00.000Z to close at 2026-06-09T00:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T00:00:00.000Z close=$62973 (lastProcessed=1780963200000)
+0|bulletbr | [DRIFT] Regime: BULL → RANGING | RVOL=0.45 | ATR%=0.367%
+0|bulletbr | [2026-06-09T00:00:00.000Z] RANGING  Close=$62973 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T00:15:00.000Z to close at 2026-06-09T00:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T00:15:00.000Z close=$62698 (lastProcessed=1780964100000)
+0|bulletbr | [2026-06-09T00:15:00.000Z] RANGING  Close=$62698 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T00:30:00.000Z to close at 2026-06-09T00:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T00:30:00.000Z close=$62678 (lastProcessed=1780965000000)
+0|bulletbr | [2026-06-09T00:30:00.000Z] RANGING  Close=$62678 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T00:45:00.000Z to close at 2026-06-09T00:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T00:45:00.000Z close=$62530 (lastProcessed=1780965900000)
+0|bulletbr | [2026-06-09T00:45:00.000Z] RANGING  Close=$62530 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T01:00:00.000Z to close at 2026-06-09T01:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T01:00:00.000Z close=$62627 (lastProcessed=1780966800000)
+0|bulletbr | [2026-06-09T01:00:00.000Z] RANGING  Close=$62627 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T01:15:00.000Z to close at 2026-06-09T01:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T01:15:00.000Z close=$62750 (lastProcessed=1780967700000)
+0|bulletbr | [2026-06-09T01:15:00.000Z] RANGING  Close=$62750 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T01:30:00.000Z to close at 2026-06-09T01:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T01:30:00.000Z close=$62678 (lastProcessed=1780968600000)
+0|bulletbr | [2026-06-09T01:30:00.000Z] RANGING  Close=$62678 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T01:45:00.000Z to close at 2026-06-09T01:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T01:45:00.000Z close=$62733 (lastProcessed=1780969500000)
+0|bulletbr | [2026-06-09T01:45:00.000Z] RANGING  Close=$62733 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T02:00:00.000Z to close at 2026-06-09T02:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T02:00:00.000Z close=$62702 (lastProcessed=1780970400000)
+0|bulletbr | [2026-06-09T02:00:00.000Z] RANGING  Close=$62702 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T02:15:00.000Z to close at 2026-06-09T02:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T02:15:00.000Z close=$62752 (lastProcessed=1780971300000)
+0|bulletbr | [2026-06-09T02:15:00.000Z] RANGING  Close=$62752 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T02:30:00.000Z to close at 2026-06-09T02:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T02:30:00.000Z close=$62629 (lastProcessed=1780972200000)
+0|bulletbr | [2026-06-09T02:30:00.000Z] RANGING  Close=$62629 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T02:45:00.000Z to close at 2026-06-09T02:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T02:45:00.000Z close=$62840 (lastProcessed=1780973100000)
+0|bulletbr | [2026-06-09T02:45:00.000Z] RANGING  Close=$62840 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T03:00:00.000Z to close at 2026-06-09T03:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T03:00:00.000Z close=$62877 (lastProcessed=1780974000000)
+0|bulletbr | [2026-06-09T03:00:00.000Z] RANGING  Close=$62877 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T03:15:00.000Z to close at 2026-06-09T03:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T03:15:00.000Z close=$62771 (lastProcessed=1780974900000)
+0|bulletbr | [2026-06-09T03:15:00.000Z] RANGING  Close=$62771 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T03:30:00.000Z to close at 2026-06-09T03:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T03:30:00.000Z close=$62792 (lastProcessed=1780975800000)
+0|bulletbr | [2026-06-09T03:30:00.000Z] RANGING  Close=$62792 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T03:45:00.000Z to close at 2026-06-09T03:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T03:45:00.000Z close=$62841 (lastProcessed=1780976700000)
+0|bulletbr | [DEBUG:SNIPER] 8 active pools | Nearest: $63146 (0.49% away) | $63157 (0.50%) | $63165 (0.52%)
+0|bulletbr | [DEBUG:SCALPER] 8 active pools | Nearest: $63146 (0.49% away) | $63157 (0.50%) | $63165 (0.52%)
+0|bulletbr | [DEBUG:SMART] 8 active pools | Nearest: $63146 (0.49% away) | $63157 (0.50%) | $63165 (0.52%)
+0|bulletbr | [2026-06-09T03:45:00.000Z] RANGING  Close=$62841 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr |
+0|bulletbr | ════ ════ REGIME UMPIRE @ 2026-06-09T04:00:03.928Z ════ ═════
+0|bulletbr |   Regime: RANGING | Candles: 768
+0|bulletbr |   SNIPER     Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SCALPER    Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SMART      Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   LEADER: TIED
+0|bulletbr | ═══════════════════════════════════════════════════
+0|bulletbr | [REST] Waiting for 2026-06-09T04:00:00.000Z to close at 2026-06-09T04:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T04:00:00.000Z close=$62876 (lastProcessed=1780977600000)
+0|bulletbr | [2026-06-09T04:00:00.000Z] RANGING  Close=$62876 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T04:15:00.000Z to close at 2026-06-09T04:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T04:15:00.000Z close=$62760 (lastProcessed=1780978500000)
+0|bulletbr | [2026-06-09T04:15:00.000Z] RANGING  Close=$62760 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T04:30:00.000Z to close at 2026-06-09T04:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T04:30:00.000Z close=$63214 (lastProcessed=1780979400000)
+0|bulletbr | [2026-06-09T04:30:00.000Z] RANGING  Close=$63214 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T04:45:00.000Z to close at 2026-06-09T04:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T04:45:00.000Z close=$63214 (lastProcessed=1780980300000)
+0|bulletbr | [DEBUG:GATE7] Adaptive Range Mode. z-threshold: 2.5 → 1.25 (mult=0.5, floor=1)
+0|bulletbr | [DEBUG:SNIPER] SWEEP @ $63214 pool=$63196 → BLOCKED: Gate7:cvd_zs_CVD_VELOCITY_BELOW_THRESHOLD | regime=RANGING rvol=1.21
+0|bulletbr | [DEBUG:SCALPER] SWEEP @ $63214 pool=$63196 → BLOCKED: Gate7:cvd_ghost_sweep | regime=RANGING rvol=1.21
+0|bulletbr | [DEBUG:SMART] SWEEP @ $63214 pool=$63196 → BLOCKED: Gate7:cvd_ghost_sweep | regime=RANGING rvol=1.21
+0|bulletbr | [2026-06-09T04:45:00.000Z] RANGING  Close=$63214 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T05:00:00.000Z to close at 2026-06-09T05:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T05:00:00.000Z close=$63224 (lastProcessed=1780981200000)
+0|bulletbr | [DEBUG:GATE7] Adaptive Range Mode. z-threshold: 2.5 → 1.25 (mult=0.5, floor=1)
+0|bulletbr | [DEBUG:SNIPER] SWEEP @ $63224 pool=$63165 → BLOCKED: Gate7:cvd_zs_CVD_VELOCITY_BELOW_THRESHOLD | regime=RANGING rvol=0.37
+0|bulletbr | [DEBUG:SCALPER] SWEEP @ $63224 pool=$63165 → BLOCKED: Validate:sweep_rvol | regime=RANGING rvol=0.37
+0|bulletbr | [DEBUG:SMART] SWEEP @ $63224 pool=$63165 → BLOCKED: Validate:sweep_rvol | regime=RANGING rvol=0.37
+0|bulletbr | [2026-06-09T05:00:00.000Z] RANGING  Close=$63224 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T05:15:00.000Z to close at 2026-06-09T05:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T05:15:00.000Z close=$63285 (lastProcessed=1780982100000)
+0|bulletbr | [2026-06-09T05:15:00.000Z] RANGING  Close=$63285 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T05:30:00.000Z to close at 2026-06-09T05:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T05:30:00.000Z close=$63348 (lastProcessed=1780983000000)
+0|bulletbr | [DEBUG:GATE7] Adaptive Range Mode. z-threshold: 2.5 → 1.25 (mult=0.5, floor=1)
+0|bulletbr | [DEBUG:SNIPER] SWEEP @ $63348 pool=$63301 → BLOCKED: Gate7:cvd_zs_CVD_VELOCITY_BELOW_THRESHOLD | regime=RANGING rvol=0.71
+0|bulletbr | [DEBUG:SCALPER] SWEEP @ $63348 pool=$63301 → BLOCKED: Gate7:cvd_ghost_sweep | regime=RANGING rvol=0.71
+0|bulletbr | [DEBUG:SMART] SWEEP @ $63348 pool=$63301 → BLOCKED: Gate7:cvd_ghost_sweep | regime=RANGING rvol=0.71
+0|bulletbr | [2026-06-09T05:30:00.000Z] RANGING  Close=$63348 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T05:45:00.000Z to close at 2026-06-09T05:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T05:45:00.000Z close=$63318 (lastProcessed=1780983900000)
+0|bulletbr | [2026-06-09T05:45:00.000Z] RANGING  Close=$63318 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T06:00:00.000Z to close at 2026-06-09T06:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T06:00:00.000Z close=$63348 (lastProcessed=1780984800000)
+0|bulletbr | [DEBUG:GATE7] Adaptive Range Mode. z-threshold: 2.5 → 1.25 (mult=0.5, floor=1)
+0|bulletbr | [DEBUG:SNIPER] SWEEP @ $63348 pool=$63270 → BLOCKED: Gate7:cvd_zs_CVD_VELOCITY_BELOW_THRESHOLD | regime=RANGING rvol=0.38
+0|bulletbr | [DEBUG:SCALPER] SWEEP @ $63348 pool=$63270 → BLOCKED: Validate:sweep_rvol | regime=RANGING rvol=0.38
+0|bulletbr | [DEBUG:SMART] SWEEP @ $63348 pool=$63270 → BLOCKED: Validate:sweep_rvol | regime=RANGING rvol=0.38
+0|bulletbr | [2026-06-09T06:00:00.000Z] RANGING  Close=$63348 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T06:15:00.000Z to close at 2026-06-09T06:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T06:15:00.000Z close=$63410 (lastProcessed=1780985700000)
+0|bulletbr | [2026-06-09T06:15:00.000Z] RANGING  Close=$63410 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T06:30:00.000Z to close at 2026-06-09T06:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T06:30:00.000Z close=$63327 (lastProcessed=1780986600000)
+0|bulletbr | [2026-06-09T06:30:00.000Z] RANGING  Close=$63327 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T06:45:00.000Z to close at 2026-06-09T06:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T06:45:00.000Z close=$63279 (lastProcessed=1780987500000)
+0|bulletbr | [DEBUG:GATE7] Adaptive Range Mode. z-threshold: 2.5 → 1.25 (mult=0.5, floor=1)
+0|bulletbr | [DEBUG:SNIPER] SWEEP @ $63279 pool=$63257 → BLOCKED: Gate7:cvd_zs_CVD_VELOCITY_BELOW_THRESHOLD | regime=RANGING rvol=0.42
+0|bulletbr | [DEBUG:SCALPER] SWEEP @ $63279 pool=$63257 → BLOCKED: Validate:sweep_rvol | regime=RANGING rvol=0.42
+0|bulletbr | [DEBUG:SMART] SWEEP @ $63279 pool=$63257 → BLOCKED: Validate:sweep_rvol | regime=RANGING rvol=0.42
+0|bulletbr | [2026-06-09T06:45:00.000Z] RANGING  Close=$63279 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T07:00:00.000Z to close at 2026-06-09T07:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T07:00:00.000Z close=$63272 (lastProcessed=1780988400000)
+0|bulletbr | [2026-06-09T07:00:00.000Z] RANGING  Close=$63272 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T07:15:00.000Z to close at 2026-06-09T07:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T07:15:00.000Z close=$63000 (lastProcessed=1780989300000)
+0|bulletbr | [2026-06-09T07:15:00.000Z] RANGING  Close=$63000 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T07:30:00.000Z to close at 2026-06-09T07:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T07:30:00.000Z close=$63161 (lastProcessed=1780990200000)
+0|bulletbr | [2026-06-09T07:30:00.000Z] RANGING  Close=$63161 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T07:45:00.000Z to close at 2026-06-09T07:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T07:45:00.000Z close=$63170 (lastProcessed=1780991100000)
+0|bulletbr | [DEBUG:GATE7] Adaptive Range Mode. z-threshold: 2.5 → 1.25 (mult=0.5, floor=1)
+0|bulletbr | [DEBUG:SNIPER] SWEEP @ $63170 pool=$63146 → BLOCKED: Gate7:cvd_zs_CVD_VELOCITY_BELOW_THRESHOLD | regime=RANGING rvol=0.30
+0|bulletbr | [DEBUG:SCALPER] SWEEP @ $63170 pool=$63146 → BLOCKED: Gate7:cvd_ghost_sweep | regime=RANGING rvol=0.30
+0|bulletbr | [DEBUG:SMART] SWEEP @ $63170 pool=$63146 → BLOCKED: Gate7:cvd_ghost_sweep | regime=RANGING rvol=0.30
+0|bulletbr | [2026-06-09T07:45:00.000Z] RANGING  Close=$63170 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T08:00:00.000Z to close at 2026-06-09T08:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T08:00:00.000Z close=$62894 (lastProcessed=1780992000000)
+0|bulletbr | [2026-06-09T08:00:00.000Z] RANGING  Close=$62894 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T08:15:00.000Z to close at 2026-06-09T08:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T08:15:00.000Z close=$62840 (lastProcessed=1780992900000)
+0|bulletbr | [2026-06-09T08:15:00.000Z] RANGING  Close=$62840 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T08:30:00.000Z to close at 2026-06-09T08:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T08:30:00.000Z close=$62949 (lastProcessed=1780993800000)
+0|bulletbr | [2026-06-09T08:30:00.000Z] RANGING  Close=$62949 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T08:45:00.000Z to close at 2026-06-09T08:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T08:45:00.000Z close=$62817 (lastProcessed=1780994700000)
+0|bulletbr | [2026-06-09T08:45:00.000Z] RANGING  Close=$62817 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T09:00:00.000Z to close at 2026-06-09T09:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T09:00:00.000Z close=$62830 (lastProcessed=1780995600000)
+0|bulletbr | [2026-06-09T09:00:00.000Z] RANGING  Close=$62830 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T09:15:00.000Z to close at 2026-06-09T09:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T09:15:00.000Z close=$62782 (lastProcessed=1780996500000)
+0|bulletbr | [2026-06-09T09:15:00.000Z] RANGING  Close=$62782 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T09:30:00.000Z to close at 2026-06-09T09:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T09:30:00.000Z close=$62643 (lastProcessed=1780997400000)
+0|bulletbr | [2026-06-09T09:30:00.000Z] RANGING  Close=$62643 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T09:45:00.000Z to close at 2026-06-09T09:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T09:45:00.000Z close=$62683 (lastProcessed=1780998300000)
+0|bulletbr | [DEBUG:SNIPER] 1 active pools | Nearest: $63157 (0.76% away) | $undefined (undefined%) | $undefined (undefined%)
+0|bulletbr | [DEBUG:SCALPER] 1 active pools | Nearest: $63157 (0.76% away) | $undefined (undefined%) | $undefined (undefined%)
+0|bulletbr | [DEBUG:SMART] 1 active pools | Nearest: $63157 (0.76% away) | $undefined (undefined%) | $undefined (undefined%)
+0|bulletbr | [2026-06-09T09:45:00.000Z] RANGING  Close=$62683 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr |
+0|bulletbr | ════ ════ REGIME UMPIRE @ 2026-06-09T10:00:04.351Z ════ ═════
+0|bulletbr |   Regime: RANGING | Candles: 792
+0|bulletbr |   SNIPER     Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SCALPER    Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SMART      Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   LEADER: TIED
+0|bulletbr | ═══════════════════════════════════════════════════
+0|bulletbr | [REST] Waiting for 2026-06-09T10:00:00.000Z to close at 2026-06-09T10:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T10:00:00.000Z close=$62746 (lastProcessed=1780999200000)
+0|bulletbr | [2026-06-09T10:00:00.000Z] RANGING  Close=$62746 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T10:15:00.000Z to close at 2026-06-09T10:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T10:15:00.000Z close=$62707 (lastProcessed=1781000100000)
+0|bulletbr | [2026-06-09T10:15:00.000Z] RANGING  Close=$62707 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T10:30:00.000Z to close at 2026-06-09T10:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T10:30:00.000Z close=$62669 (lastProcessed=1781001000000)
+0|bulletbr | [2026-06-09T10:30:00.000Z] RANGING  Close=$62669 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T10:45:00.000Z to close at 2026-06-09T10:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T10:45:00.000Z close=$62750 (lastProcessed=1781001900000)
+0|bulletbr | [2026-06-09T10:45:00.000Z] RANGING  Close=$62750 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T11:00:00.000Z to close at 2026-06-09T11:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T11:00:00.000Z close=$62494 (lastProcessed=1781002800000)
+0|bulletbr | [2026-06-09T11:00:00.000Z] RANGING  Close=$62494 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T11:15:00.000Z to close at 2026-06-09T11:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T11:15:00.000Z close=$62563 (lastProcessed=1781003700000)
+0|bulletbr | [2026-06-09T11:15:00.000Z] RANGING  Close=$62563 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T11:30:00.000Z to close at 2026-06-09T11:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T11:30:00.000Z close=$62599 (lastProcessed=1781004600000)
+0|bulletbr | [2026-06-09T11:30:00.000Z] RANGING  Close=$62599 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T11:45:00.000Z to close at 2026-06-09T11:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T11:45:00.000Z close=$62680 (lastProcessed=1781005500000)
+0|bulletbr | [POOL] Refreshed pools @ candle 800 — 100 pools found
+0|bulletbr | [2026-06-09T11:45:00.000Z] RANGING  Close=$62680 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T12:00:00.000Z to close at 2026-06-09T12:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T12:00:00.000Z close=$62784 (lastProcessed=1781006400000)
+0|bulletbr | [2026-06-09T12:00:00.000Z] RANGING  Close=$62784 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T12:15:00.000Z to close at 2026-06-09T12:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T12:15:00.000Z close=$62622 (lastProcessed=1781007300000)
+0|bulletbr | [2026-06-09T12:15:00.000Z] RANGING  Close=$62622 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T12:30:00.000Z to close at 2026-06-09T12:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T12:30:00.000Z close=$62487 (lastProcessed=1781008200000)
+0|bulletbr | [2026-06-09T12:30:00.000Z] RANGING  Close=$62487 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T12:45:00.000Z to close at 2026-06-09T12:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T12:45:00.000Z close=$62612 (lastProcessed=1781009100000)
+0|bulletbr | [2026-06-09T12:45:00.000Z] RANGING  Close=$62612 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T13:00:00.000Z to close at 2026-06-09T13:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T13:00:00.000Z close=$62529 (lastProcessed=1781010000000)
+0|bulletbr | [2026-06-09T13:00:00.000Z] RANGING  Close=$62529 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T13:15:00.000Z to close at 2026-06-09T13:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T13:15:00.000Z close=$62314 (lastProcessed=1781010900000)
+0|bulletbr | [2026-06-09T13:15:00.000Z] RANGING  Close=$62314 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T13:30:00.000Z to close at 2026-06-09T13:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T13:30:00.000Z close=$62406 (lastProcessed=1781011800000)
+0|bulletbr | [2026-06-09T13:30:00.000Z] RANGING  Close=$62406 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T13:45:00.000Z to close at 2026-06-09T13:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T13:45:00.000Z close=$62244 (lastProcessed=1781012700000)
+0|bulletbr | [2026-06-09T13:45:00.000Z] RANGING  Close=$62244 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T14:00:00.000Z to close at 2026-06-09T14:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T14:00:00.000Z close=$61987 (lastProcessed=1781013600000)
+0|bulletbr | [2026-06-09T14:00:00.000Z] RANGING  Close=$61987 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T14:15:00.000Z to close at 2026-06-09T14:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T14:15:00.000Z close=$61576 (lastProcessed=1781014500000)
+0|bulletbr | [2026-06-09T14:15:00.000Z] RANGING  Close=$61576 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T14:30:00.000Z to close at 2026-06-09T14:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T14:30:00.000Z close=$61330 (lastProcessed=1781015400000)
+0|bulletbr | [2026-06-09T14:30:00.000Z] RANGING  Close=$61330 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T14:45:00.000Z to close at 2026-06-09T14:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T14:45:00.000Z close=$61511 (lastProcessed=1781016300000)
+0|bulletbr | [2026-06-09T14:45:00.000Z] RANGING  Close=$61511 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T15:00:00.000Z to close at 2026-06-09T15:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T15:00:00.000Z close=$61621 (lastProcessed=1781017200000)
+0|bulletbr | [DRIFT] Regime: RANGING → BEAR | RVOL=1.41 | ATR%=0.553%
+0|bulletbr | [2026-06-09T15:00:00.000Z] BEAR     Close=$61621 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T15:15:00.000Z to close at 2026-06-09T15:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T15:15:00.000Z close=$61273 (lastProcessed=1781018100000)
+0|bulletbr | [2026-06-09T15:15:00.000Z] BEAR     Close=$61273 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T15:30:00.000Z to close at 2026-06-09T15:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T15:30:00.000Z close=$61293 (lastProcessed=1781019000000)
+0|bulletbr | [2026-06-09T15:30:00.000Z] BEAR     Close=$61293 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T15:45:00.000Z to close at 2026-06-09T15:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T15:45:00.000Z close=$61101 (lastProcessed=1781019900000)
+0|bulletbr | [DEBUG:SNIPER] 15 active pools | Nearest: $62419 (2.16% away) | $62468 (2.24%) | $62471 (2.24%)
+0|bulletbr | [DEBUG:SCALPER] 15 active pools | Nearest: $62419 (2.16% away) | $62468 (2.24%) | $62471 (2.24%)
+0|bulletbr | [DEBUG:SMART] 15 active pools | Nearest: $62419 (2.16% away) | $62468 (2.24%) | $62471 (2.24%)
+0|bulletbr | [2026-06-09T15:45:00.000Z] BEAR     Close=$61101 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr |
+0|bulletbr | ════ ════ REGIME UMPIRE @ 2026-06-09T16:00:04.512Z ════ ═════
+0|bulletbr |   Regime: BEAR | Candles: 816
+0|bulletbr |   SNIPER     Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SCALPER    Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SMART      Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   LEADER: TIED
+0|bulletbr | ═══════════════════════════════════════════════════
+0|bulletbr | [REST] Waiting for 2026-06-09T16:00:00.000Z to close at 2026-06-09T16:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T16:00:00.000Z close=$60977 (lastProcessed=1781020800000)
+0|bulletbr | [2026-06-09T16:00:00.000Z] BEAR     Close=$60977 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T16:15:00.000Z to close at 2026-06-09T16:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T16:15:00.000Z close=$61020 (lastProcessed=1781021700000)
+0|bulletbr | [2026-06-09T16:15:00.000Z] BEAR     Close=$61020 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T16:30:00.000Z to close at 2026-06-09T16:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T16:30:00.000Z close=$61226 (lastProcessed=1781022600000)
+0|bulletbr | [2026-06-09T16:30:00.000Z] BEAR     Close=$61226 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T16:45:00.000Z to close at 2026-06-09T16:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T16:45:00.000Z close=$61368 (lastProcessed=1781023500000)
+0|bulletbr | [2026-06-09T16:45:00.000Z] BEAR     Close=$61368 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T17:00:00.000Z to close at 2026-06-09T17:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T17:00:00.000Z close=$61578 (lastProcessed=1781024400000)
+0|bulletbr | [2026-06-09T17:00:00.000Z] BEAR     Close=$61578 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T17:15:00.000Z to close at 2026-06-09T17:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T17:15:00.000Z close=$61719 (lastProcessed=1781025300000)
+0|bulletbr | [2026-06-09T17:15:00.000Z] BEAR     Close=$61719 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T17:30:00.000Z to close at 2026-06-09T17:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T17:30:00.000Z close=$61661 (lastProcessed=1781026200000)
+0|bulletbr | [2026-06-09T17:30:00.000Z] BEAR     Close=$61661 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T17:45:00.000Z to close at 2026-06-09T17:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T17:45:00.000Z close=$61667 (lastProcessed=1781027100000)
+0|bulletbr | [2026-06-09T17:45:00.000Z] BEAR     Close=$61667 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T18:00:00.000Z to close at 2026-06-09T18:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T18:00:00.000Z close=$61720 (lastProcessed=1781028000000)
+0|bulletbr | [2026-06-09T18:00:00.000Z] BEAR     Close=$61720 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T18:15:00.000Z to close at 2026-06-09T18:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T18:15:00.000Z close=$61705 (lastProcessed=1781028900000)
+0|bulletbr | [2026-06-09T18:15:00.000Z] BEAR     Close=$61705 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T18:30:00.000Z to close at 2026-06-09T18:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T18:30:00.000Z close=$61577 (lastProcessed=1781029800000)
+0|bulletbr | [2026-06-09T18:30:00.000Z] BEAR     Close=$61577 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T18:45:00.000Z to close at 2026-06-09T18:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T18:45:00.000Z close=$61756 (lastProcessed=1781030700000)
+0|bulletbr | [2026-06-09T18:45:00.000Z] BEAR     Close=$61756 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T19:00:00.000Z to close at 2026-06-09T19:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T19:00:00.000Z close=$61748 (lastProcessed=1781031600000)
+0|bulletbr | [2026-06-09T19:00:00.000Z] BEAR     Close=$61748 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T19:15:00.000Z to close at 2026-06-09T19:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T19:15:00.000Z close=$61844 (lastProcessed=1781032500000)
+0|bulletbr | [2026-06-09T19:15:00.000Z] BEAR     Close=$61844 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T19:30:00.000Z to close at 2026-06-09T19:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T19:30:00.000Z close=$61852 (lastProcessed=1781033400000)
+0|bulletbr | [2026-06-09T19:30:00.000Z] BEAR     Close=$61852 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T19:45:00.000Z to close at 2026-06-09T19:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T19:45:00.000Z close=$62069 (lastProcessed=1781034300000)
+0|bulletbr | [2026-06-09T19:45:00.000Z] BEAR     Close=$62069 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T20:00:00.000Z to close at 2026-06-09T20:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T20:00:00.000Z close=$62187 (lastProcessed=1781035200000)
+0|bulletbr | [2026-06-09T20:00:00.000Z] BEAR     Close=$62187 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T20:15:00.000Z to close at 2026-06-09T20:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T20:15:00.000Z close=$62062 (lastProcessed=1781036100000)
+0|bulletbr | [2026-06-09T20:15:00.000Z] BEAR     Close=$62062 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T20:30:00.000Z to close at 2026-06-09T20:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T20:30:00.000Z close=$62100 (lastProcessed=1781037000000)
+0|bulletbr | [2026-06-09T20:30:00.000Z] BEAR     Close=$62100 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T20:45:00.000Z to close at 2026-06-09T20:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T20:45:00.000Z close=$62132 (lastProcessed=1781037900000)
+0|bulletbr | [2026-06-09T20:45:00.000Z] BEAR     Close=$62132 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T21:00:00.000Z to close at 2026-06-09T21:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T21:00:00.000Z close=$62109 (lastProcessed=1781038800000)
+0|bulletbr | [DRIFT] Regime: BEAR → RANGING | RVOL=0.47 | ATR%=0.375%
+0|bulletbr | [2026-06-09T21:00:00.000Z] RANGING  Close=$62109 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T21:15:00.000Z to close at 2026-06-09T21:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T21:15:00.000Z close=$61777 (lastProcessed=1781039700000)
+0|bulletbr | [2026-06-09T21:15:00.000Z] RANGING  Close=$61777 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T21:30:00.000Z to close at 2026-06-09T21:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T21:30:00.000Z close=$61767 (lastProcessed=1781040600000)
+0|bulletbr | [2026-06-09T21:30:00.000Z] RANGING  Close=$61767 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T21:45:00.000Z to close at 2026-06-09T21:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T21:45:00.000Z close=$61732 (lastProcessed=1781041500000)
+0|bulletbr | [DEBUG:SNIPER] 11 active pools | Nearest: $62419 (1.11% away) | $62468 (1.19%) | $62471 (1.20%)
+0|bulletbr | [DEBUG:SCALPER] 11 active pools | Nearest: $62419 (1.11% away) | $62468 (1.19%) | $62471 (1.20%)
+0|bulletbr | [DEBUG:SMART] 11 active pools | Nearest: $62419 (1.11% away) | $62468 (1.19%) | $62471 (1.20%)
+0|bulletbr | [2026-06-09T21:45:00.000Z] RANGING  Close=$61732 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr |
+0|bulletbr | ════ ════ REGIME UMPIRE @ 2026-06-09T22:00:04.875Z ════ ═════
+0|bulletbr |   Regime: RANGING | Candles: 840
+0|bulletbr |   SNIPER     Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SCALPER    Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SMART      Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   LEADER: TIED
+0|bulletbr | ═══════════════════════════════════════════════════
+0|bulletbr | [REST] Waiting for 2026-06-09T22:00:00.000Z to close at 2026-06-09T22:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T22:00:00.000Z close=$61804 (lastProcessed=1781042400000)
+0|bulletbr | [2026-06-09T22:00:00.000Z] RANGING  Close=$61804 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T22:15:00.000Z to close at 2026-06-09T22:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T22:15:00.000Z close=$61781 (lastProcessed=1781043300000)
+0|bulletbr | [2026-06-09T22:15:00.000Z] RANGING  Close=$61781 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T22:30:00.000Z to close at 2026-06-09T22:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T22:30:00.000Z close=$61822 (lastProcessed=1781044200000)
+0|bulletbr | [2026-06-09T22:30:00.000Z] RANGING  Close=$61822 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T22:45:00.000Z to close at 2026-06-09T22:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T22:45:00.000Z close=$61688 (lastProcessed=1781045100000)
+0|bulletbr | [2026-06-09T22:45:00.000Z] RANGING  Close=$61688 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T23:00:00.000Z to close at 2026-06-09T23:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T23:00:00.000Z close=$61714 (lastProcessed=1781046000000)
+0|bulletbr | [DRIFT] Regime: RANGING → BEAR | RVOL=0.31 | ATR%=0.332%
+0|bulletbr | [2026-06-09T23:00:00.000Z] BEAR     Close=$61714 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T23:15:00.000Z to close at 2026-06-09T23:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T23:15:00.000Z close=$61658 (lastProcessed=1781046900000)
+0|bulletbr | [2026-06-09T23:15:00.000Z] BEAR     Close=$61658 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T23:30:00.000Z to close at 2026-06-09T23:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T23:30:00.000Z close=$61607 (lastProcessed=1781047800000)
+0|bulletbr | [2026-06-09T23:30:00.000Z] BEAR     Close=$61607 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-09T23:45:00.000Z to close at 2026-06-09T23:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-09T23:45:00.000Z close=$61695 (lastProcessed=1781048700000)
+0|bulletbr | [2026-06-09T23:45:00.000Z] BEAR     Close=$61695 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T00:00:00.000Z to close at 2026-06-10T00:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T00:00:00.000Z close=$61804 (lastProcessed=1781049600000)
+0|bulletbr | [2026-06-10T00:00:00.000Z] BEAR     Close=$61804 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T00:15:00.000Z to close at 2026-06-10T00:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T00:15:00.000Z close=$61820 (lastProcessed=1781050500000)
+0|bulletbr | [POOL] Refreshed pools @ candle 850 — 110 pools found
+0|bulletbr | [2026-06-10T00:15:00.000Z] BEAR     Close=$61820 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T00:30:00.000Z to close at 2026-06-10T00:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T00:30:00.000Z close=$61491 (lastProcessed=1781051400000)
+0|bulletbr | [2026-06-10T00:30:00.000Z] BEAR     Close=$61491 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T00:45:00.000Z to close at 2026-06-10T00:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T00:45:00.000Z close=$61887 (lastProcessed=1781052300000)
+0|bulletbr | [2026-06-10T00:45:00.000Z] BEAR     Close=$61887 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T01:00:00.000Z to close at 2026-06-10T01:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T01:00:00.000Z close=$61797 (lastProcessed=1781053200000)
+0|bulletbr | [DEBUG:SNIPER] SWEEP @ $61797 pool=$61658 → BLOCKED: Gate7:cvd_zs_CVD_VELOCITY_BELOW_THRESHOLD | regime=BEAR rvol=0.49
+0|bulletbr | [DEBUG:SCALPER] SWEEP @ $61797 pool=$61658 → BLOCKED: Gate7:cvd_ghost_sweep | regime=BEAR rvol=0.49
+0|bulletbr | [DEBUG:SMART] SWEEP @ $61797 pool=$61658 → BLOCKED: Gate7:cvd_ghost_sweep | regime=BEAR rvol=0.49
+0|bulletbr | [2026-06-10T01:00:00.000Z] BEAR     Close=$61797 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T01:15:00.000Z to close at 2026-06-10T01:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T01:15:00.000Z close=$61800 (lastProcessed=1781054100000)
+0|bulletbr | [2026-06-10T01:15:00.000Z] BEAR     Close=$61800 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T01:30:00.000Z to close at 2026-06-10T01:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T01:30:00.000Z close=$61605 (lastProcessed=1781055000000)
+0|bulletbr | [2026-06-10T01:30:00.000Z] BEAR     Close=$61605 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T01:45:00.000Z to close at 2026-06-10T01:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T01:45:00.000Z close=$61681 (lastProcessed=1781055900000)
+0|bulletbr | [DEBUG:SNIPER] SWEEP @ $61681 pool=$61597 → BLOCKED: Gate7:cvd_zs_CVD_VELOCITY_BELOW_THRESHOLD | regime=BEAR rvol=0.25
+0|bulletbr | [DEBUG:SCALPER] SWEEP @ $61681 pool=$61597 → BLOCKED: Validate:sweep_rvol | regime=BEAR rvol=0.25
+0|bulletbr | [DEBUG:SMART] SWEEP @ $61681 pool=$61597 → BLOCKED: Validate:sweep_rvol | regime=BEAR rvol=0.25
+0|bulletbr | [2026-06-10T01:45:00.000Z] BEAR     Close=$61681 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T02:00:00.000Z to close at 2026-06-10T02:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T02:00:00.000Z close=$61526 (lastProcessed=1781056800000)
+0|bulletbr | [2026-06-10T02:00:00.000Z] BEAR     Close=$61526 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T02:15:00.000Z to close at 2026-06-10T02:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T02:15:00.000Z close=$61466 (lastProcessed=1781057700000)
+0|bulletbr | [2026-06-10T02:15:00.000Z] BEAR     Close=$61466 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T02:30:00.000Z to close at 2026-06-10T02:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T02:30:00.000Z close=$61342 (lastProcessed=1781058600000)
+0|bulletbr | [2026-06-10T02:30:00.000Z] BEAR     Close=$61342 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T02:45:00.000Z to close at 2026-06-10T02:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T02:45:00.000Z close=$61271 (lastProcessed=1781059500000)
+0|bulletbr | [2026-06-10T02:45:00.000Z] BEAR     Close=$61271 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T03:00:00.000Z to close at 2026-06-10T03:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T03:00:00.000Z close=$61402 (lastProcessed=1781060400000)
+0|bulletbr | [2026-06-10T03:00:00.000Z] BEAR     Close=$61402 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T03:15:00.000Z to close at 2026-06-10T03:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T03:15:00.000Z close=$61540 (lastProcessed=1781061300000)
+0|bulletbr | [2026-06-10T03:15:00.000Z] BEAR     Close=$61540 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T03:30:00.000Z to close at 2026-06-10T03:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T03:30:00.000Z close=$61496 (lastProcessed=1781062200000)
+0|bulletbr | [2026-06-10T03:30:00.000Z] BEAR     Close=$61496 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T03:45:00.000Z to close at 2026-06-10T03:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T03:45:00.000Z close=$61518 (lastProcessed=1781063100000)
+0|bulletbr | [DEBUG:SNIPER] 4 active pools | Nearest: $61544 (0.04% away) | $61588 (0.11%) | $61602 (0.14%)
+0|bulletbr | [DEBUG:SCALPER] 4 active pools | Nearest: $61544 (0.04% away) | $61588 (0.11%) | $61602 (0.14%)
+0|bulletbr | [DEBUG:SMART] 4 active pools | Nearest: $61544 (0.04% away) | $61588 (0.11%) | $61602 (0.14%)
+0|bulletbr | [2026-06-10T03:45:00.000Z] BEAR     Close=$61518 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr |
+0|bulletbr | ════ ════ REGIME UMPIRE @ 2026-06-10T04:00:05.185Z ════ ═════
+0|bulletbr |   Regime: BEAR | Candles: 864
+0|bulletbr |   SNIPER     Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SCALPER    Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SMART      Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   LEADER: TIED
+0|bulletbr | ═══════════════════════════════════════════════════
+0|bulletbr | [REST] Waiting for 2026-06-10T04:00:00.000Z to close at 2026-06-10T04:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T04:00:00.000Z close=$61474 (lastProcessed=1781064000000)
+0|bulletbr | [2026-06-10T04:00:00.000Z] BEAR     Close=$61474 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T04:15:00.000Z to close at 2026-06-10T04:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T04:15:00.000Z close=$61441 (lastProcessed=1781064900000)
+0|bulletbr | [2026-06-10T04:15:00.000Z] BEAR     Close=$61441 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T04:30:00.000Z to close at 2026-06-10T04:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T04:30:00.000Z close=$61200 (lastProcessed=1781065800000)
+0|bulletbr | [2026-06-10T04:30:00.000Z] BEAR     Close=$61200 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T04:45:00.000Z to close at 2026-06-10T04:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T04:45:00.000Z close=$61270 (lastProcessed=1781066700000)
+0|bulletbr | [2026-06-10T04:45:00.000Z] BEAR     Close=$61270 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T05:00:00.000Z to close at 2026-06-10T05:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T05:00:00.000Z close=$61145 (lastProcessed=1781067600000)
+0|bulletbr | [2026-06-10T05:00:00.000Z] BEAR     Close=$61145 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T05:15:00.000Z to close at 2026-06-10T05:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T05:15:00.000Z close=$61237 (lastProcessed=1781068500000)
+0|bulletbr | [2026-06-10T05:15:00.000Z] BEAR     Close=$61237 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T05:30:00.000Z to close at 2026-06-10T05:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T05:30:00.000Z close=$61250 (lastProcessed=1781069400000)
+0|bulletbr | [2026-06-10T05:30:00.000Z] BEAR     Close=$61250 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T05:45:00.000Z to close at 2026-06-10T05:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T05:45:00.000Z close=$61322 (lastProcessed=1781070300000)
+0|bulletbr | [2026-06-10T05:45:00.000Z] BEAR     Close=$61322 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T06:00:00.000Z to close at 2026-06-10T06:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T06:00:00.000Z close=$61364 (lastProcessed=1781071200000)
+0|bulletbr | [2026-06-10T06:00:00.000Z] BEAR     Close=$61364 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T06:15:00.000Z to close at 2026-06-10T06:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T06:15:00.000Z close=$61317 (lastProcessed=1781072100000)
+0|bulletbr | [2026-06-10T06:15:00.000Z] BEAR     Close=$61317 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T06:30:00.000Z to close at 2026-06-10T06:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T06:30:00.000Z close=$61404 (lastProcessed=1781073000000)
+0|bulletbr | [2026-06-10T06:30:00.000Z] BEAR     Close=$61404 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T06:45:00.000Z to close at 2026-06-10T06:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T06:45:00.000Z close=$61437 (lastProcessed=1781073900000)
+0|bulletbr | [2026-06-10T06:45:00.000Z] BEAR     Close=$61437 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T07:00:00.000Z to close at 2026-06-10T07:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T07:00:00.000Z close=$61540 (lastProcessed=1781074800000)
+0|bulletbr | [2026-06-10T07:00:00.000Z] BEAR     Close=$61540 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T07:15:00.000Z to close at 2026-06-10T07:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T07:15:00.000Z close=$61615 (lastProcessed=1781075700000)
+0|bulletbr | [2026-06-10T07:15:00.000Z] BEAR     Close=$61615 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T07:30:00.000Z to close at 2026-06-10T07:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T07:30:00.000Z close=$61724 (lastProcessed=1781076600000)
+0|bulletbr | [2026-06-10T07:30:00.000Z] BEAR     Close=$61724 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T07:45:00.000Z to close at 2026-06-10T07:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T07:45:00.000Z close=$61654 (lastProcessed=1781077500000)
+0|bulletbr | [2026-06-10T07:45:00.000Z] BEAR     Close=$61654 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T08:00:00.000Z to close at 2026-06-10T08:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T08:00:00.000Z close=$61582 (lastProcessed=1781078400000)
+0|bulletbr | [2026-06-10T08:00:00.000Z] BEAR     Close=$61582 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T08:15:00.000Z to close at 2026-06-10T08:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T08:15:00.000Z close=$61508 (lastProcessed=1781079300000)
+0|bulletbr | [2026-06-10T08:15:00.000Z] BEAR     Close=$61508 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T08:30:00.000Z to close at 2026-06-10T08:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T08:30:00.000Z close=$61208 (lastProcessed=1781080200000)
+0|bulletbr | [2026-06-10T08:30:00.000Z] BEAR     Close=$61208 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T08:45:00.000Z to close at 2026-06-10T08:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T08:45:00.000Z close=$61229 (lastProcessed=1781081100000)
+0|bulletbr | [2026-06-10T08:45:00.000Z] BEAR     Close=$61229 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T09:00:00.000Z to close at 2026-06-10T09:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T09:00:00.000Z close=$61032 (lastProcessed=1781082000000)
+0|bulletbr | [2026-06-10T09:00:00.000Z] BEAR     Close=$61032 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T09:15:00.000Z to close at 2026-06-10T09:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T09:15:00.000Z close=$61177 (lastProcessed=1781082900000)
+0|bulletbr | [2026-06-10T09:15:00.000Z] BEAR     Close=$61177 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T09:30:00.000Z to close at 2026-06-10T09:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T09:30:00.000Z close=$61234 (lastProcessed=1781083800000)
+0|bulletbr | [2026-06-10T09:30:00.000Z] BEAR     Close=$61234 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T09:45:00.000Z to close at 2026-06-10T09:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T09:45:00.000Z close=$61303 (lastProcessed=1781084700000)
+0|bulletbr | [DEBUG:SNIPER] 4 active pools | Nearest: $61544 (0.39% away) | $61588 (0.47%) | $61602 (0.49%)
+0|bulletbr | [DEBUG:SCALPER] 4 active pools | Nearest: $61544 (0.39% away) | $61588 (0.47%) | $61602 (0.49%)
+0|bulletbr | [DEBUG:SMART] 4 active pools | Nearest: $61544 (0.39% away) | $61588 (0.47%) | $61602 (0.49%)
+0|bulletbr | [2026-06-10T09:45:00.000Z] BEAR     Close=$61303 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr |
+0|bulletbr | ════ ════ REGIME UMPIRE @ 2026-06-10T10:00:05.486Z ════ ═════
+0|bulletbr |   Regime: BEAR | Candles: 888
+0|bulletbr |   SNIPER     Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SCALPER    Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SMART      Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   LEADER: TIED
+0|bulletbr | ═══════════════════════════════════════════════════
+0|bulletbr | [REST] Waiting for 2026-06-10T10:00:00.000Z to close at 2026-06-10T10:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T10:00:00.000Z close=$61205 (lastProcessed=1781085600000)
+0|bulletbr | [2026-06-10T10:00:00.000Z] BEAR     Close=$61205 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T10:15:00.000Z to close at 2026-06-10T10:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T10:15:00.000Z close=$61302 (lastProcessed=1781086500000)
+0|bulletbr | [2026-06-10T10:15:00.000Z] BEAR     Close=$61302 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T10:30:00.000Z to close at 2026-06-10T10:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T10:30:00.000Z close=$61282 (lastProcessed=1781087400000)
+0|bulletbr | [2026-06-10T10:30:00.000Z] BEAR     Close=$61282 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T10:45:00.000Z to close at 2026-06-10T10:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T10:45:00.000Z close=$61350 (lastProcessed=1781088300000)
+0|bulletbr | [2026-06-10T10:45:00.000Z] BEAR     Close=$61350 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T11:00:00.000Z to close at 2026-06-10T11:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T11:00:00.000Z close=$61138 (lastProcessed=1781089200000)
+0|bulletbr | [2026-06-10T11:00:00.000Z] BEAR     Close=$61138 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T11:15:00.000Z to close at 2026-06-10T11:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T11:15:00.000Z close=$60936 (lastProcessed=1781090100000)
+0|bulletbr | [2026-06-10T11:15:00.000Z] BEAR     Close=$60936 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T11:30:00.000Z to close at 2026-06-10T11:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T11:30:00.000Z close=$60991 (lastProcessed=1781091000000)
+0|bulletbr | [2026-06-10T11:30:00.000Z] BEAR     Close=$60991 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T11:45:00.000Z to close at 2026-06-10T11:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T11:45:00.000Z close=$61003 (lastProcessed=1781091900000)
+0|bulletbr | [2026-06-10T11:45:00.000Z] BEAR     Close=$61003 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T12:00:00.000Z to close at 2026-06-10T12:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T12:00:00.000Z close=$61161 (lastProcessed=1781092800000)
+0|bulletbr | [2026-06-10T12:00:00.000Z] BEAR     Close=$61161 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T12:15:00.000Z to close at 2026-06-10T12:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T12:15:00.000Z close=$61135 (lastProcessed=1781093700000)
+0|bulletbr | [2026-06-10T12:15:00.000Z] BEAR     Close=$61135 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T12:30:00.000Z to close at 2026-06-10T12:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T12:30:00.000Z close=$61660 (lastProcessed=1781094600000)
+0|bulletbr | [2026-06-10T12:30:00.000Z] BEAR     Close=$61660 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T12:45:00.000Z to close at 2026-06-10T12:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T12:45:00.000Z close=$61532 (lastProcessed=1781095500000)
+0|bulletbr | [POOL] Refreshed pools @ candle 900 — 116 pools found
+0|bulletbr | [2026-06-10T12:45:00.000Z] BEAR     Close=$61532 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T13:00:00.000Z to close at 2026-06-10T13:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T13:00:00.000Z close=$61501 (lastProcessed=1781096400000)
+0|bulletbr | [DEBUG:SNIPER] SWEEP @ $61501 pool=$61486 → BLOCKED: Gate7:cvd_zs_CVD_VELOCITY_BELOW_THRESHOLD | regime=BEAR rvol=0.48
+0|bulletbr | [DEBUG:SCALPER] SWEEP @ $61501 pool=$61486 → BLOCKED: Validate:sweep_rvol | regime=BEAR rvol=0.48
+0|bulletbr | [DEBUG:SMART] SWEEP @ $61501 pool=$61486 → BLOCKED: Validate:sweep_rvol | regime=BEAR rvol=0.48
+0|bulletbr | [2026-06-10T13:00:00.000Z] BEAR     Close=$61501 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T13:15:00.000Z to close at 2026-06-10T13:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T13:15:00.000Z close=$61531 (lastProcessed=1781097300000)
+0|bulletbr | [2026-06-10T13:15:00.000Z] BEAR     Close=$61531 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T13:30:00.000Z to close at 2026-06-10T13:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T13:30:00.000Z close=$62357 (lastProcessed=1781098200000)
+0|bulletbr | [2026-06-10T13:30:00.000Z] BEAR     Close=$62357 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T13:45:00.000Z to close at 2026-06-10T13:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T13:45:00.000Z close=$62124 (lastProcessed=1781099100000)
+0|bulletbr | [DRIFT] Regime: BEAR → RANGING | RVOL=1.10 | ATR%=0.578%
+0|bulletbr | [2026-06-10T13:45:00.000Z] RANGING  Close=$62124 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T14:00:00.000Z to close at 2026-06-10T14:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T14:00:00.000Z close=$61975 (lastProcessed=1781100000000)
+0|bulletbr | [2026-06-10T14:00:00.000Z] RANGING  Close=$61975 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T14:15:00.000Z to close at 2026-06-10T14:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T14:15:00.000Z close=$62020 (lastProcessed=1781100900000)
+0|bulletbr | [2026-06-10T14:15:00.000Z] RANGING  Close=$62020 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T14:30:00.000Z to close at 2026-06-10T14:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T14:30:00.000Z close=$61915 (lastProcessed=1781101800000)
+0|bulletbr | [2026-06-10T14:30:00.000Z] RANGING  Close=$61915 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T14:45:00.000Z to close at 2026-06-10T14:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T14:45:00.000Z close=$62171 (lastProcessed=1781102700000)
+0|bulletbr | [2026-06-10T14:45:00.000Z] RANGING  Close=$62171 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T15:00:00.000Z to close at 2026-06-10T15:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T15:00:00.000Z close=$61908 (lastProcessed=1781103600000)
+0|bulletbr | [2026-06-10T15:00:00.000Z] RANGING  Close=$61908 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T15:15:00.000Z to close at 2026-06-10T15:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T15:15:00.000Z close=$62230 (lastProcessed=1781104500000)
+0|bulletbr | [2026-06-10T15:15:00.000Z] RANGING  Close=$62230 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T15:30:00.000Z to close at 2026-06-10T15:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T15:30:00.000Z close=$62364 (lastProcessed=1781105400000)
+0|bulletbr | [2026-06-10T15:30:00.000Z] RANGING  Close=$62364 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T15:45:00.000Z to close at 2026-06-10T15:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T15:45:00.000Z close=$62605 (lastProcessed=1781106300000)
+0|bulletbr | [DEBUG:SNIPER] 4 active pools | Nearest: $61177 (2.28% away) | $61123 (2.37%) | $61077 (2.44%)
+0|bulletbr | [DEBUG:SCALPER] 4 active pools | Nearest: $61177 (2.28% away) | $61123 (2.37%) | $61077 (2.44%)
+0|bulletbr | [DEBUG:SMART] 4 active pools | Nearest: $61177 (2.28% away) | $61123 (2.37%) | $61077 (2.44%)
+0|bulletbr | [2026-06-10T15:45:00.000Z] RANGING  Close=$62605 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr |
+0|bulletbr | ════ ════ REGIME UMPIRE @ 2026-06-10T16:00:05.802Z ════ ═════
+0|bulletbr |   Regime: RANGING | Candles: 912
+0|bulletbr |   SNIPER     Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SCALPER    Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   SMART      Cap=$10000 | Trades=0 | WR=N/A% | PF=N/A | AvgRR=$N/A | DD=0.00% | avgCS=N/A
+0|bulletbr |   LEADER: TIED
+0|bulletbr | ═══════════════════════════════════════════════════
+0|bulletbr | [REST] Waiting for 2026-06-10T16:00:00.000Z to close at 2026-06-10T16:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T16:00:00.000Z close=$62310 (lastProcessed=1781107200000)
+0|bulletbr | [2026-06-10T16:00:00.000Z] RANGING  Close=$62310 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T16:15:00.000Z to close at 2026-06-10T16:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T16:15:00.000Z close=$62253 (lastProcessed=1781108100000)
+0|bulletbr | [2026-06-10T16:15:00.000Z] RANGING  Close=$62253 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T16:30:00.000Z to close at 2026-06-10T16:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T16:30:00.000Z close=$62192 (lastProcessed=1781109000000)
+0|bulletbr | [2026-06-10T16:30:00.000Z] RANGING  Close=$62192 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T16:45:00.000Z to close at 2026-06-10T16:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T16:45:00.000Z close=$62195 (lastProcessed=1781109900000)
+0|bulletbr | [2026-06-10T16:45:00.000Z] RANGING  Close=$62195 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T17:00:00.000Z to close at 2026-06-10T17:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T17:00:00.000Z close=$62064 (lastProcessed=1781110800000)
+0|bulletbr | [2026-06-10T17:00:00.000Z] RANGING  Close=$62064 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T17:15:00.000Z to close at 2026-06-10T17:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T17:15:00.000Z close=$61871 (lastProcessed=1781111700000)
+0|bulletbr | [2026-06-10T17:15:00.000Z] RANGING  Close=$61871 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T17:30:00.000Z to close at 2026-06-10T17:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T17:30:00.000Z close=$61713 (lastProcessed=1781112600000)
+0|bulletbr | [2026-06-10T17:30:00.000Z] RANGING  Close=$61713 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T17:45:00.000Z to close at 2026-06-10T17:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T17:45:00.000Z close=$61945 (lastProcessed=1781113500000)
+0|bulletbr | [2026-06-10T17:45:00.000Z] RANGING  Close=$61945 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T18:00:00.000Z to close at 2026-06-10T18:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T18:00:00.000Z close=$61930 (lastProcessed=1781114400000)
+0|bulletbr | [2026-06-10T18:00:00.000Z] RANGING  Close=$61930 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T18:15:00.000Z to close at 2026-06-10T18:29:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T18:15:00.000Z close=$61992 (lastProcessed=1781115300000)
+0|bulletbr | [2026-06-10T18:15:00.000Z] RANGING  Close=$61992 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T18:30:00.000Z to close at 2026-06-10T18:44:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T18:30:00.000Z close=$61751 (lastProcessed=1781116200000)
+0|bulletbr | [2026-06-10T18:30:00.000Z] RANGING  Close=$61751 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T18:45:00.000Z to close at 2026-06-10T18:59:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T18:45:00.000Z close=$61856 (lastProcessed=1781117100000)
+0|bulletbr | [2026-06-10T18:45:00.000Z] RANGING  Close=$61856 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T19:00:00.000Z to close at 2026-06-10T19:14:59.999Z
+0|bulletbr | [REST] NEW CANDLE @ 2026-06-10T19:00:00.000Z close=$61718 (lastProcessed=1781118000000)
+0|bulletbr | [2026-06-10T19:00:00.000Z] RANGING  Close=$61718 | SNIPER: $10000 (0 open) | SCALPER: $10000 (0 open)
+0|bulletbr | [REST] Waiting for 2026-06-10T19:15:00.000Z to close at 2026-06-10T19:29:59.999Z
+
