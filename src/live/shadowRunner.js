@@ -43,7 +43,7 @@ const { LEVERAGE }                   = require('../../config');
 // CONFIGURATIONS
 // ────────────────────────────────────────────────────────────────────
 
-const SYMBOL = 'btcusdt';
+const SYMBOL = process.env.BB_SYMBOL || 'ethusdt';  // default ETH (proven profitable)
 const TIMEFRAME = '15m';
 const INITIAL_CAPITAL = 10000;
 const DEBUG_MODE = process.env.BB_DEBUG === '1';  // set BB_DEBUG=1 in .env to enable
@@ -377,7 +377,7 @@ function processCandleForAccount(acct, candleIndex) {
     }
 
     // Fill simulation
-    const fillResult = simulateLimitFill(candle, { side: signal.side || 'LONG', limitPrice: entryPrice }, 'LSO', 'BTCUSDT', atr14[i]);
+    const fillResult = simulateLimitFill(candle, { side: signal.side || 'LONG', limitPrice: entryPrice }, 'LSO', SYMBOL.toUpperCase(), atr14[i]);
     if (!fillResult.fill) continue;
 
     // ── Order Book Conflict Check (Structural Correlation Fix) ──────
@@ -447,7 +447,7 @@ function processCandleForAccount(acct, candleIndex) {
     const size = simulatePositionFill(rawSize, rvolVals[i]);
 
     // Portfolio check
-    const riskCheck = checkPortfolioRisk(openTrades, 'BTCUSDT', riskAmount, equity.capital);
+    const riskCheck = checkPortfolioRisk(openTrades, SYMBOL.toUpperCase(), riskAmount, equity.capital);
     if (!riskCheck.allowed) continue;
     if (isDailyLossBreached(equity.dailyPnl, equity.capital)) continue;
 
@@ -463,7 +463,7 @@ function processCandleForAccount(acct, candleIndex) {
 
     const extraFields = strategy.extraTradeFields ? strategy.extraTradeFields(signal, zone, i, { ...ctx, extra }) : {};
     const trade = createTrade({
-      symbol: 'BTCUSDT', entryPrice, stopPrice, tp1, tp2, size, riskAmount,
+      symbol: SYMBOL.toUpperCase(), entryPrice, stopPrice, tp1, tp2, size, riskAmount,
       side: signal.side || 'LONG', strategy: strategy.name, regime,
       fillQuality: fillResult.quality, extraStopSlippage: fillResult.extraStopSlippage,
       entryTimestamp: candle.openTime, entryCandle: i,
@@ -758,7 +758,7 @@ async function pollLatestCandle() {
   const axios = require('axios');
   try {
     const resp = await axios.get('https://fapi.binance.com/fapi/v1/klines', {
-      params: { symbol: 'BTCUSDT', interval: '15m', limit: 2 },
+      params: { symbol: SYMBOL.toUpperCase(), interval: '15m', limit: 2 },
       timeout: 10000,
     });
     
@@ -823,7 +823,7 @@ async function backfillWarmup() {
     const startTime = endTime - 500 * 15 * 60 * 1000;
     
     const resp = await axios.get(url, {
-      params: { symbol: 'BTCUSDT', interval: '15m', startTime, endTime, limit: 500 },
+      params: { symbol: SYMBOL.toUpperCase(), interval: '15m', startTime, endTime, limit: 500 },
       timeout: 15000,
     });
 
