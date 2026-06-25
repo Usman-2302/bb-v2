@@ -38,6 +38,7 @@ const { computeFromContext }         = require('./convictionScore');
 const { checkCircuitBreaker }        = require('./circuitBreaker');
 const { computeSignalScore }         = require('./signalScorer');
 const { LEVERAGE }                   = require('../../config');
+const { computeRiskLevel }           = require('./riskLevel');
 
 // ────────────────────────────────────────────────────────────────────
 // CONFIGURATIONS
@@ -413,34 +414,39 @@ function processCandleForAccount(acct, candleIndex) {
     // ── Sizing: SMART uses signal-strength scoring, others use conviction score ──
     let sizeMult, riskAmount, signalScore = null;
 
-    if (acct.config.name === 'SMART') {
-      // Signal-strength risk scaling
-      const pool = zone; // the pool being swept
-      const ssResult = computeSignalScore({
-        rvol: rvolVals[i] || 1.0,
-        poolVolume: pool.volume || extra._poolMedianVol || 10000,
-        medianPoolVol: extra._poolMedianVol || 10000,
-        regime,
-        side: signal.side || 'LONG',
-      }, LEVERAGE);
-
-      signalScore = ssResult;
-      
-      if (ssResult.verdict === 'SKIP') {
-        debug(acct, `SWEEP @ $${candle.close.toFixed(0)} pool=$${zone.level?.toFixed(0)} → SKIP: ${ssResult.reason} (score=${ssResult.score}, rvol=${ssResult.breakdown.rvol}, pool=${ssResult.breakdown.pool}, regime=${ssResult.breakdown.regime})`);
-        break;
-      }
-
-      sizeMult = ssResult.riskMultiplier;
-      riskAmount = INITIAL_CAPITAL * SIZING.baseRisk * sizeMult;
-
-      if (process.env.BB_DEBUG === '1') {
-        console.log(`[DEBUG:SIGNAL] SMART score=${ssResult.score} (rvol:${ssResult.breakdown.rvol}+pool:${ssResult.breakdown.pool}+regime:${ssResult.breakdown.regime}) → ${ssResult.riskMultiplier}x risk [${ssResult.verdict}]`);
-      }
-    } else {
-      // SNIPER/SCALPER: conviction score sizing
-      sizeMult = csResult.sizeMult;
-      riskAmount = INITIAL_CAPITAL * SIZING.baseRisk * sizeMult;
+    // ── Dynamic Risk Level (applies to ALL accounts) ──
+    // Compute coin health from closed trades
+    const allClosed = acct.closedTrades || [];
+    const recent30 = allClosed.slice(-30);
+    const recentWins = recent30.filter(t => t.realizedPnl > 0).length;
+    const coinPf = (() => { let g=0,l=0; recent30.forEach(t=>{if(t.realizedPnl>0)g+=t.realizedPnl;else l+=Math.abs(t.realizedPnl);}); return l>0?g/l:(g>0?999:0); })();
+    const coinHealth = { pf: coinPf, wr: recent30.length>0?recentWins/recent30.length:0, trades: recent30.length };
+    const volRatio = rvolVals[i] || 0.5; // RVOL already is volume ratio
+    
+    // Compute risk level
+    const pool = zone;
+    const ssResult = computeSignalScore({
+      rvol: rvolVals[i] || 1.0,
+      poolVolume: pool.volume || extra._poolMedianVol || 10000,
+      medianPoolVol: extra._poolMedianVol || 10000,
+      regime,
+      side: signal.side || 'LONG',
+    }, LEVERAGE);
+    
+    const riskResult = computeRiskLevel({ signalScore: ssResult, coinHealth, volumeRatio: volRatio });
+    
+    if (riskResult.level === 0 || ssResult.verdict === 'SKIP') {
+      debug(acct, `SWEEP @ $${candle.close.toFixed(0)} pool=$${zone.level?.toFixed(0)} → SKIP: ${ssResult.reason} (score=${ssResult.score})`);
+      continue;
+    }
+    
+    // Apply risk level: 1-4 maps to 1%-4% of capital
+    const riskPct = riskResult.riskPct / 100; // e.g., 3 → 0.03
+    riskAmount = INITIAL_CAPITAL * riskPct;
+    sizeMult = riskResult.riskPct; // for logging
+    
+    if (process.env.BB_DEBUG === '1') {
+      console.log(`[DEBUG:RISK] ${acct.config.name} risk=${riskResult.level}(${riskResult.label}) ${riskResult.riskPct}% | sig=${riskResult.factors.signal.toFixed(1)} coin=${riskResult.factors.coin.toFixed(1)} vol=${riskResult.factors.volume.toFixed(1)} | combined=${riskResult.combined.toFixed(2)}`);
     }
 
     const rawSize = riskAmount / riskDist;
