@@ -498,7 +498,23 @@ function umpireReport() {
   const lines = [];
   lines.push('');
   lines.push('════ ════ REGIME UMPIRE @ ' + new Date().toISOString() + ' ════ ═════');
-  lines.push('  Regime: ' + regime + ' | Candles: ' + candles.length);
+  lines.push(`  Coin: ${SYMBOL.toUpperCase()} | Regime: ${regime} | Candles: ${candles.length}`);
+  
+  // Coin health score
+  let totalTrades = 0, totalWins = 0, totalPnL = 0, totalGhosts = 0, totalSweeps = 0;
+  for (const [, acct] of Object.entries(accounts)) {
+    totalTrades += acct.closedTrades.length;
+    totalWins += acct.closedTrades.filter(t => t.realizedPnl > 0).length;
+    totalPnL += acct.closedTrades.reduce((s,t) => s + (t.realizedPnl||0), 0);
+    totalGhosts += (acct.cvdFiltered || 0);
+    totalSweeps += (acct.sweepsDetected || 0);
+  }
+  const coinWR = totalTrades > 0 ? totalWins / totalTrades : 0;
+  const coinPF = totalTrades > 0 ? (() => { let g=0,l=0; for(const[,a] of Object.entries(accounts)){a.closedTrades.forEach(t=>{if(t.realizedPnl>0)g+=t.realizedPnl;else l+=Math.abs(t.realizedPnl);});} return l>0?g/l:0; })() : 0;
+  const ghostRate = totalSweeps > 0 ? (totalGhosts / totalSweeps * 100) : 0;
+  const health = coinPF >= 1.5 ? '🟢 STRONG' : coinPF >= 1.0 ? '🟡 OK' : totalTrades < 5 ? '⚪ NEW' : '🔴 WEAK';
+  lines.push(`  Health: ${health} | Trades: ${totalTrades} | WR: ${(coinWR*100).toFixed(0)}% | PF: ${coinPF.toFixed(2)} | PnL: $${totalPnL.toFixed(0)} | Ghosts: ${ghostRate.toFixed(0)}%`);
+  lines.push('');
 
   for (const [name, acct] of Object.entries(accounts)) {
     const eq = acct.equity;
