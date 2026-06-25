@@ -1,0 +1,214 @@
+/**
+ * [03] // THE_CORE SECTION
+ * 
+ * Magic Mechanics:
+ * - Localized Cursor Illumination: A dynamic radial gradient tracks the mouse, 
+ *   "illuminating" the dark grid only where the user looks.
+ * - Scroll-Linked SVG Morphing: The central neural core rotates, scales, and 
+ *   draws its paths based on scroll progress.
+ * - Parallax Typography: Deep layered text that moves at different speeds.
+ * - Elastic Draggable Nodes: Physics-based floating tech stack tokens.
+ */
+
+import React, { useRef } from 'react';
+import { 
+  motion, 
+  useScroll, 
+  useTransform, 
+  useMotionTemplate, 
+  useMotionValue, 
+  useSpring 
+} from 'framer-motion';
+
+const CoreSection: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  // Springified mouse coordinates for smooth, lagging light source
+  const springConfig = { stiffness: 150, damping: 30, mass: 0.5 };
+  const lightX = useSpring(mouseX, springConfig);
+  const lightY = useSpring(mouseY, springConfig);
+
+  // Dynamic radial gradient that follows the mouse
+  const maskBg = useMotionTemplate`radial-gradient(600px circle at ${lightX}px ${lightY}px, rgba(0, 240, 255, 0.08), transparent 80%)`;
+  
+  // Scroll progress for the section
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start end', 'end start']
+  });
+
+  // Scroll-linked transforms
+  const rotate = useTransform(scrollYProgress, [0, 1], [0, 90]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1.1, 0.9]);
+  const coreOpacity = useTransform(scrollYProgress, [0, 0.3, 0.8, 1], [0, 1, 1, 0]);
+  const textY = useTransform(scrollYProgress, [0, 1], [100, -100]);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (rect) {
+      mouseX.set(e.clientX - rect.left);
+      mouseY.set(e.clientY - rect.top);
+    }
+  };
+
+  return (
+    <section 
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      className="relative min-h-screen w-full bg-[#050505] border-t-[0.5px] border-neutral-800 overflow-hidden flex flex-col items-center justify-center"
+    >
+      {/* Dynamic Mouse Light Layer */}
+      <motion.div 
+        className="absolute inset-0 z-0 pointer-events-none" 
+        style={{ background: maskBg }} 
+      />
+      
+      {/* Static Cyber Grid Background */}
+      <div 
+        className="absolute inset-0 z-0 opacity-20 pointer-events-none" 
+        style={{
+          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), 
+                            linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)`,
+          backgroundSize: '40px 40px'
+        }}
+      />
+
+      {/* Parallax Massive Background Text */}
+      <motion.div 
+        style={{ y: textY }}
+        className="absolute text-[15vw] font-bold text-neutral-900/50 select-none pointer-events-none z-0 tracking-tighter whitespace-nowrap"
+      >
+        THE CORE
+      </motion.div>
+
+      {/* The Interactive SVG Core */}
+      <motion.div 
+        style={{ rotate, scale, opacity: coreOpacity }}
+        className="relative z-10 w-[600px] h-[600px] max-w-[90vw] max-h-[90vw]"
+      >
+        <svg viewBox="0 0 500 500" className="w-full h-full drop-shadow-[0_0_20px_rgba(0,240,255,0.2)]">
+          <defs>
+            <linearGradient id="coreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#00f0ff" stopOpacity="0.1" />
+            </linearGradient>
+          </defs>
+          
+          {/* Outer Rotating Rings */}
+          <motion.circle 
+            cx="250" cy="250" r="200" 
+            fill="none" 
+            stroke="#333" 
+            strokeWidth="0.5" 
+            strokeDasharray="10 5 2 5"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: 'center' }}
+          />
+          <motion.circle 
+            cx="250" cy="250" r="150" 
+            fill="none" 
+            stroke="#00f0ff" 
+            strokeWidth="0.5" 
+            strokeOpacity="0.4"
+            animate={{ rotate: -360 }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: 'center' }}
+          />
+
+          {/* Geometric Core Structure */}
+          <motion.path
+            d="M 250 100 L 400 200 L 350 350 L 150 350 L 100 200 Z"
+            fill="none"
+            stroke="url(#coreGrad)"
+            strokeWidth="1"
+            style={{ pathLength: scrollYProgress }}
+          />
+          
+          <motion.path
+            d="M 250 150 L 350 200 L 320 300 L 180 300 L 150 200 Z"
+            fill="none"
+            stroke="#00f0ff"
+            strokeWidth="0.5"
+            style={{ pathLength: scrollYProgress }}
+          />
+
+          {/* Pulsing Center Node */}
+          <motion.circle 
+            cx="250" cy="250" r="8" 
+            fill="#00f0ff"
+            animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            style={{ transformOrigin: 'center' }}
+          />
+          <circle cx="250" cy="250" r="20" fill="none" stroke="#00f0ff" strokeWidth="0.5" />
+        </svg>
+
+        {/* Floating Tech Stack Nodes */}
+        <FloatingNode label="REACT" top="10%" left="20%" delay={0.1} />
+        <FloatingNode label="PYTHON" top="15%" left="70%" delay={0.2} />
+        <FloatingNode label="WASM" top="70%" left="15%" delay={0.3} />
+        <FloatingNode label="WEBGL" top="75%" left="75%" delay={0.4} />
+      </motion.div>
+
+      {/* Foreground Text */}
+      <div className="absolute z-20 bottom-10 left-10 max-w-md">
+        <div className="text-cyan-400 text-xs font-mono tracking-widest mb-2">
+          [03] // SYSTEM_ARCHITECTURE
+        </div>
+        <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+          The Core Layer
+        </h2>
+        <p className="text-neutral-500 text-sm font-mono mt-2">
+          > Interfacing low-level execution with high-fidelity rendering. 
+          Every component is a node in the collective machine.
+        </p>
+      </div>
+    </section>
+  );
+};
+
+/**
+ * Elastic Draggable Node Component
+ */
+const FloatingNode: React.FC<{ label: string; top: string; left: string; delay: number }> = ({ 
+  label, top, left, delay 
+}) => {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  
+  // Springy return to origin
+  const xSpring = useSpring(x, { stiffness: 200, damping: 10 });
+  const ySpring = useSpring(y, { stiffness: 200, damping: 10 });
+
+  return (
+    <motion.div
+      style={{ 
+        position: 'absolute', 
+        top, 
+        left, 
+        x: xSpring, 
+        y: ySpring 
+      }}
+      drag
+      dragConstraints={{ left: -50, right: 50, top: -50, bottom: 50 }}
+      dragElastic={0.8}
+      onDragEnd={() => {
+        x.set(0);
+        y.set(0);
+      }}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.95, cursor: 'grabbing' }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className="bg-black/80 backdrop-blur-sm border-[0.5px] border-cyan-400/50 text-cyan-400 text-[10px] font-mono px-3 py-1.5 rounded-full cursor-grab shadow-[0_0_10px_rgba(0,240,255,0.2)]"
+    >
+      {label}
+    </motion.div>
+  );
+};
+
+export default CoreSection;

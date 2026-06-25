@@ -558,7 +558,7 @@ function onNewCandle(candle) {
 
   // Add to rolling buffer (keep last 5000 candles for indicators)
   candles.push(candle);
-  if (candles.length > 5000) candles.shift();
+  if (candles.length > 10000) candles.shift(); // extended from 5000 for better pool history
 
   // Recompute indicators
   recomputeIndicators();
@@ -819,11 +819,11 @@ async function backfillWarmup() {
   try {
     const url = 'https://fapi.binance.com/fapi/v1/klines';
     const endTime = Date.now();
-    // Get ~500 candles (~5 days of 15m)
-    const startTime = endTime - 500 * 15 * 60 * 1000;
+    // Get ~1000 candles (~10 days of 15m — extended for better pool coverage)
+    const startTime = endTime - 1000 * 15 * 60 * 1000;
     
     const resp = await axios.get(url, {
-      params: { symbol: SYMBOL.toUpperCase(), interval: '15m', startTime, endTime, limit: 500 },
+      params: { symbol: SYMBOL.toUpperCase(), interval: '15m', startTime, endTime, limit: 1000 },
       timeout: 15000,
     });
 

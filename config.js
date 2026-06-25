@@ -277,7 +277,7 @@ const OB = {
 const LSO = {
   // Equal highs/lows detection
   equalTolerance:  0.003,  // highs/lows within 0.3% of each other
-  equalLookback:   50,     // scan last N candles for equal levels
+  equalLookback:   200,    // pool expiry in candles (extended from 50 — higher quality sweeps)
   equalMinGap:     5,      // minimum candles apart between the two levels
 
   // Swing low strictness — controls how selective the pool detector is
