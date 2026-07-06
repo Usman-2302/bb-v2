@@ -66,48 +66,17 @@ function checkRegimeDrift(regime, rvol, atrPct) {
   lastRegime = regime;
 }
 
-// Account A: LETHAL (Phase D12) — trend-focused
-const CONFIG_SNIPER = {
-  name: 'SNIPER',
-  cvdGateVariant: 'CVD_ZSCORE',
-  gateVP: true,
-  gate4HTrend: false,              // DISABLED — backtest proven blocker
-  obConfluenceEnabled: true,
-  timeBreakeven: { enabled: false },  // no time-exhaustion
-  rvolThreshold: 3.0,                  // strict RVOL
-  useRangeTP2: false,                  // DOL-based TP2
-};
-
-// Account B: SCALPER (Phase D13) — range-focused
+// Account: SCALPER v2 — Skip RANGING, 3R target, RVOL≥1.2 (Phase breakthrough)
 const CONFIG_SCALPER = {
   name: 'SCALPER',
-  cvdGateVariant: 'CVD',               // CVD plain — PF 1.353, +9.3% on 30d backtest
-  gateVP: true,
-  gate4HTrend: false,              // DISABLED — backtest proven blocker
-  obConfluenceEnabled: true,
-  timeBreakeven: { enabled: true, checkFn: checkLSORangingTimeExhaustion },
-  rvolThreshold: 2.2,                  // relaxed RVOL in ranges
-  useRangeTP2: true,                   // VAH/VAL TP2
-  // SCALPER RANGING relaxations (Phase feat/conviction-correlation)
-  // 6-day live data: 100% sweeps blocked by CVD_ZSCORE in low-vol RANGING.
-  // Relaxed thresholds let SCALPER capture 3-5 quality trades/week in ranges.
-  // SNIPER keeps strict defaults (z≥1.5, RVOL>2.2/3.0) — not affected.
-  scalperRangingZscoreMin: 1.0,        // Tier 2 z-score min in RANGING (relaxed from 1.5)
-  scalperRangingRvolMin: 1.5,          // Tier 2 RVOL min in RANGING (relaxed from 2.2)
-};
-
-// Account C: SMART — signal-strength risk scaling (Phase feat/conviction-correlation)
-// Scores every trade on RVOL + Pool Depth + Regime Alignment.
-// Allocates 0.5x-2.0x risk based on conviction. Score 0-1 → SKIP.
-const CONFIG_SMART = {
-  name: 'SMART',
-  cvdGateVariant: 'CVD',               // CVD plain — PF 1.353, proven profitable
-  gateVP: true,
-  gate4HTrend: false,              // DISABLED — backtest proven blocker
-  obConfluenceEnabled: true,
+  cvdGateVariant: 'CVD',
+  gateVP: false,              // OFF — backtest proven loser
+  gate4HTrend: false,         // OFF — backtest proven blocker
+  obConfluenceEnabled: false,
   timeBreakeven: { enabled: false },
-  rvolThreshold: 2.2,
-  useRangeTP2: true,
+  rvolThreshold: 1.2,         // Quality RVOL filter
+  useRangeTP2: false,
+  _skipRanging: true,         // Only trade BULL + BEAR
 };
 
 // ────────────────────────────────────────────────────────────────────
@@ -121,11 +90,9 @@ let cvdVals = { delta: [], cumulative: [] };
 let volumeProfiles = [];      // rolling 24H volume profiles
 let lastCandleTime = 0;
 
-// Account state
+// Single account: SCALPER v2
 const accounts = {
-  [CONFIG_SNIPER.name]:   createAccountState(CONFIG_SNIPER),
   [CONFIG_SCALPER.name]:  createAccountState(CONFIG_SCALPER),
-  [CONFIG_SMART.name]:    createAccountState(CONFIG_SMART),
 };
 
 function createAccountState(config) {
