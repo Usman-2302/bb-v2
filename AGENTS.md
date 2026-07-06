@@ -1,144 +1,113 @@
-# AGENTS.md
-
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
-
----
+# Repository Guidelines
 
 ## Project Overview
 
-**BulletBrain v3.0** — a Node.js crypto futures trading bot using Smart Money Concepts (SMC). Status: **pre-development** (planning complete, no source code exists yet). The two planning documents (`backtestplan.md`, `plan1.2.md`) are the authoritative specification.
+**BulletBrain v3.0** — Node.js crypto futures trading bot using Smart Money Concepts (SMC). Currently **live paper trading** on 4 coins (ETH, BNB, BTC, SOL) via PM2 on AWS EC2. Branch: `feat/conviction-correlation`.
 
----
-
-## Planned Commands
-
-Once scaffolded (Phase 0), the expected scripts in `package.json`:
-
-```
-node src/data/downloader.js          # download historical OHLCV + OI data
-node src/backtest/runner.js fvg      # run FVG strategy backtest
-node src/backtest/runner.js combined # run all accepted strategies
-node src/backtest/monteCarlo.js      # run 1000 Monte Carlo simulations
-node src/backtest/runner.js forward  # Phase 8 forward test (2025 data only)
-```
-
-Test framework not yet selected. When added, indicator unit tests must validate against TradingView reference values (e.g., EMA(9) on BTC 1H first 20 candles).
-
----
-
-## Architecture
-
-### Directory Structure (to be created in Phase 0)
+## Directory Structure
 
 ```
 bbv-2/
 ├── src/
-│   ├── indicators/     # pure functions: ema.js, atr.js, rvol.js, cvd.js, volumeProfile.js, swingHL.js
-│   ├── strategies/     # fvg.js, ob.js, lso.js, cvdDiv.js, vpb.js, shortLso.js
-│   ├── backtest/       # engine.js, runner.js, reporter.js, monteCarlo.js
-│   ├── data/           # downloader.js, loader.js, validator.js, oiDownloader.js
-│   └── utils/          # regimeDetector.js, dolFinder.js, macroTagger.js, killzoneCheck.js
-├── data/
-│   ├── historical/     # NDJSON files per coin per timeframe (*_tagged.ndjson after Step 0.5)
-│   └── oi/             # OI history from Binance CSV bulk data
-├── results/            # per-strategy JSON results (never delete — they are the accept/reject record)
-├── config.js           # ALL parameters live here — never hardcode in strategy files
+│   ├── indicators/        # pure functions: ema.js, atr.js, rvol.js, cvd.js, volumeProfile.js
+│   ├── strategies/        # lso.js, shortLso.js, fvg.js, ob.js
+│   ├── backtest/          # engine.js, runner.js, lso_runner.js + analysis scripts
+│   ├── live/              # shadowRunner.js, convictionScore.js, signalScorer.js, riskLevel.js, circuitBreaker.js
+│   ├── data/              # downloader.js, loader.js
+│   └── utils/             # regimeDetector.js, dolFinder.js
+├── data/historical/       # NDJSON per coin per timeframe
+├── config.js              # ALL parameters — never hardcode in strategy files
 └── package.json
 ```
 
-### Data Format
+## Key Commands
 
-**NDJSON (newline-delimited JSON)**, one candle per line. Never flat JSON arrays — 2.5M+ candles must stream, not load entirely into memory.
+```bash
+# Run shadow trading bot (single coin via BB_SYMBOL env)
+BB_SYMBOL=ethusdt node src/live/shadowRunner.js
 
-### Core Concepts
+# Backtest LSO strategy
+node src/backtest/runner.js lso
 
-**Market Regime Engine** — the most critical architectural component. Every trade is gated by regime first:
-- `BULL`: EMA200 slope ≥ 15°, price above EMA200 ≥ 20 of last 30 4H candles
-- `BEAR`: EMA200 slope ≤ -15°, price below EMA200 ≥ 20 of last 30 candles
-- `RANGING`: EMA200 flat (< 5°), price oscillating within 8% band for ≥ 3 days
-- `CRISIS`: 4H ATR% > 5% — overrides everything else
+# PM2 management (on server)
+pm2 start src/live/shadowRunner.js --name bulletbrain-eth
+pm2 logs bulletbrain-eth --lines 50
+pm2 restart all
+```
 
-Regime is computed on BTC 4H candles only, propagated to all lower timeframes. Requires 2 consecutive 4H closes to switch (prevents flapping). Stored in Redis: `"regime:BTC"`.
+## Architecture
 
-**9 Quality Gates** — every trade must pass all of them (one failure = skip):
-- Gate 0: regime compatibility for this strategy
-- Gate 1: HTF trend alignment (4H EMA200 + EMA50 direction)
-- Gate 2: strategy produces a valid, fresh signal (≤ 2 candles old)
-- Gate 3: time-normalized RVOL (threshold varies by session: 1.5× killzone, 2.5× Asian)
-- Gate 4: R:R ≥ 1.8 via DOL (Draw on Liquidity) structural target
-- Gate 5: portfolio state (max 3 concurrent, max 3% total risk, no correlated pairs)
-- Gate 6: execution feasibility (spread < 0.05%, ATR_15m > 0.3%)
-- Gate 7: OI flush ≥ 1.5% (LSO only) + CVD direction confirmation
-- Gate T: temporal/killzone (London 07:00–09:00 UTC, NY 13:00–15:00 UTC)
-- Gate 8: macro sentiment (no blackout window, F&G in range, funding rate not extreme)
+### Shadow Runner (`src/live/shadowRunner.js`)
 
-**5 Long Strategies + 2 Short Mirrors + 1 Pyramiding Rule:**
-- LSO (Liquidity Sweep + OI Flush) — 15m setup, requires OI data
-- OB (Order Block retest) — 1H context
-- FVG (Fair Value Gap fill) — start here (Phase 1), fewest dependencies
-- CVD Divergence — requires approximation quality validation (Pearson ≥ 0.75) first
-- VPB (Volume Profile Breakout) — 24H rolling 50-bucket profile
-- SHORT-LSO / SHORT-OB / SHORT-FVG / SHORT-CVD — BEAR regime only, tighter stops (0.07× ATR)
-- Strategy 7 (breakeven pyramid) — position management, not a new entry
+Live paper trading engine. Connects to Binance WebSocket + REST polling fallback. One instance per coin via `BB_SYMBOL` env var. Runs 3 accounts per coin:
 
-**Backtest Engine invariants** (build once, never change mid-cycle — invalidates results):
-- Fees: 0.04% round-trip maker
-- Slippage: 0.05% (killzone) / 0.10% (normal) / 0.25% (crisis) per side
-- Fill rate: 85% of limit orders; exact-touch (candle.low == limitPrice) = no fill
-- Adverse selection: price must trade ≥ 1 tick BELOW limit to guarantee a long fill
-- Funding: 0.01% per 8H holding cost
+| Account | Gate | Sizing | Behavior |
+|---------|------|--------|----------|
+| SNIPER | CVD_ZSCORE | Dynamic risk | Trend-focused, almost never trades |
+| SCALPER | CVD (plain) | Dynamic risk | Higher frequency, range-focused |
+| SMART | CVD (plain) | Dynamic risk + signal scoring | Same as SCALPER + quality scoring |
 
-**DOL (Draw on Liquidity)** — must have a strict lookahead bias guard:
+### Signal Pipeline
+
+1. Detect equal-lows pools (rolling 1000-candle window, 200-candle expiry)
+2. Sweep detection: candle wicks below pool, closes above (reclaim)
+3. Gate7: CVD ghost sweep filter (blocks sweeps with no spot buying)
+4. RVOL filter (≥ 0.8 threshold)
+5. DOL finder for structural targets
+6. Dynamic risk level (1-4%) based on signal quality + coin health + volume
+7. Portfolio risk check (max 3 concurrent per coin)
+
+### Dynamic Risk Engine (`src/live/riskLevel.js`)
+
+Risk level 1-4% determined by:
+- Signal quality (50% weight): from signalScorer (0-6 score)
+- Coin health (30%): rolling 30-trade PF
+- Volume health (20%): current RVOL vs baseline
+
+## Configuration
+
+All parameters in `config.js`. Key values:
+
 ```javascript
-// Only candles with openTime < signalCandle.openTime are valid
-// In dev mode, assert this — one violation = silent backtest disaster
-if (process.env.NODE_ENV === 'development') {
-  console.assert(candidate.openTime < signal.openTime, 'DOL lookahead bias');
-}
+sweepRvolMin: 0.8          // minimum RVOL on sweep candle
+equalLookback: 200          // pool expiry in candles (48 hours)
+equalTolerance: 0.003       // 0.3% tolerance for equal levels
+
+// GATES block
+gate7_range_multiplier: 0.5 // 50% z-score reduction in RANGING
+gate7_range_zscore_floor: 1.0
+
+// LEVERAGE block — signal scoring thresholds
+rvolHigh: 2.0, rvolMid: 1.5
+poolDeep: 2.0, poolStandard: 1.0
+scoreMap: { 2:0.5, 3:0.75, 4:1.0, 5:1.5, 6:2.0 }
 ```
 
-**Adaptive Position Sizing:**
+## Backtest Guidelines
+
+- All backtests MUST use rolling-window pool detection (1000 candle lookback). Pre-computed full-dataset pools introduce lookahead bias and inflate trade counts 100x.
+- `src/backtest/coin_comparison.js` — multi-coin diagnostic
+- `src/backtest/multicoin_diag.js` — per-regime breakdown
+- `src/backtest/pool_compare.js` — pool lookahead vs rolling comparison
+- Data stored as NDJSON in `data/historical/`. Download with `src/data/downloader.js` or Binance REST `/fapi/v1/klines`.
+
+## Live Deployment
+
+Server: `ubuntu@54.249.145.15` (SSH key: `bbv2-key.pem`). PM2 manages 4 instances:
+
+```bash
+bulletbrain-eth   # BB_SYMBOL=ethusdt (primary profit driver)
+bulletbrain-bnb   # BB_SYMBOL=bnbusdt
+bulletbrain-btc   # BB_SYMBOL=btcusdt
+bulletbrain-sol   # BB_SYMBOL=solusdt
 ```
-risk = BASE_RISK(1%) × REGIME_MULT × STREAK_MULT × CONFIDENCE_MULT
-     clamped to [0.25%, 1.5%]
-```
-REGIME: BULL=1.0, RANGING=0.7, BEAR_SHORT=1.0, BEAR_LONG=0.5, CRISIS=0.5
-STREAK: 0-2 losses=1.0, 3=0.75, 4=0.5, 5+=0.25 (+ Telegram alert)
-CONFIDENCE: standard=1.0, high-confluence=1.3, crowded-reversal=1.5, weak=0.7
 
-**Monte Carlo** — must use `worker_threads` (one worker per CPU core). Running 1000 simulations on the main thread will crash the V8 heap on large trade sets.
+Umpire reports every 24 candles (6 hours) with per-coin health scores (🟢 STRONG / 🟡 OK / 🔴 WEAK). `BB_DEBUG=1` in `.env` enables sweep diagnostics.
 
-### Results Files
+## Known Findings
 
-Every backtest run saves to `results/`. The naming convention is strict:
-`{strategy}_{filter_stage}.json` e.g. `fvg_baseline.json` → `fvg_regime.json` → `fvg_full_gates.json` → `fvg_sensitivity.json` → `fvg_regime_split.json`.
-
-**Never overwrite a results file** — each one is a data point in the accept/reject decision.
-
-### Accept/Reject Rules
-
-Each strategy is accepted if **all** of:
-- PF > 1.5 (CVD: > 1.4, forward test: > 1.3)
-- Max DD < 8% isolated (< 15% combined, < 20% forward)
-- All parameters pass sensitivity test: WR variation < 15pp across ±20% parameter range
-- Walk-forward PF degradation < 20% across 5 rolling windows
-- Monte Carlo 10th percentile > starting equity
-
-**30-trade minimum floor** — any regime split with < 30 trades is `INSUFFICIENT_DATA`, not a reject signal.
-
-### External Data Sources
-
-- Binance Futures REST: `/fapi/v1/klines` (OHLCV), `/fapi/v1/premiumIndex` (funding)
-- Binance bulk data: `data.binance.vision/data/futures/um/daily/openInterest/` (OI CSV)
-- Binance aggTrades: `data.binance.vision/data/futures/um/daily/aggTrades/` (CVD validation)
-- Fear & Greed: `api.alternative.me/fng/`
-- Coinglass: liquidation heatmap, economic calendar
-- Whale Alert API: large transaction monitoring
-
-### MongoDB Schema
-
-`strategy_performance` collection tracks rolling per-strategy stats. Auto-PAUSE when 50-trade WR < 30% or PF < 1.0. RESUME is manual-only (7-day minimum, 5 paper trades first).
-
-### 2025 Data Is Sacred
-
-`data/historical/*_2025_*.ndjson` (or equivalent) must never be used until Phase 8. It is the only honest forward test. Any optimization touching 2025 data invalidates the entire forward test.
+- **ETH** is the best performer (60% WR, PF 2.15 in 3-month backtest). Deep sweeps, strong reclaims.
+- **BTC** sweeps are 70% ghosts — institutional efficiency makes SMC unreliable on BTC.
+- **BNB** has the highest WR (64%) and lowest ghost rate (39%).
+- **SOL** has deepest sweeps (0.21%) but highest ghost rate (50%).
+- **Pool lookahead bias** was the #1 backtest vs live discrepancy (fixed with rolling windows).

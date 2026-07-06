@@ -71,7 +71,7 @@ const CONFIG_SNIPER = {
   name: 'SNIPER',
   cvdGateVariant: 'CVD_ZSCORE',
   gateVP: true,
-  gate4HTrend: true,
+  gate4HTrend: false,              // DISABLED — backtest proven blocker
   obConfluenceEnabled: true,
   timeBreakeven: { enabled: false },  // no time-exhaustion
   rvolThreshold: 3.0,                  // strict RVOL
@@ -83,7 +83,7 @@ const CONFIG_SCALPER = {
   name: 'SCALPER',
   cvdGateVariant: 'CVD',               // CVD plain — PF 1.353, +9.3% on 30d backtest
   gateVP: true,
-  gate4HTrend: true,
+  gate4HTrend: false,              // DISABLED — backtest proven blocker
   obConfluenceEnabled: true,
   timeBreakeven: { enabled: true, checkFn: checkLSORangingTimeExhaustion },
   rvolThreshold: 2.2,                  // relaxed RVOL in ranges
@@ -103,7 +103,7 @@ const CONFIG_SMART = {
   name: 'SMART',
   cvdGateVariant: 'CVD',               // CVD plain — PF 1.353, proven profitable
   gateVP: true,
-  gate4HTrend: true,
+  gate4HTrend: false,              // DISABLED — backtest proven blocker
   obConfluenceEnabled: true,
   timeBreakeven: { enabled: false },
   rvolThreshold: 2.2,
@@ -394,22 +394,15 @@ function processCandleForAccount(acct, candleIndex) {
       // Priority account proceeds even if other account already registered
     }
 
-    // ── Conviction Score (replaces old multiplier chain) ─────────────
-    // Compute unified 0-1 conviction score from gate results
-    const kzCtx = { inKillzone: false }; // shadow runner doesn't use killzone gates currently
+    // ── Conviction Score (analytics only — Gate7 handles quality) ──
+    const kzCtx = { inKillzone: false };
     const csResult = computeFromContext({ extra }, rvolVals[i], kzCtx.inKillzone);
-
-    // Log conviction score vs old multiplier for A/B comparison
     const oldSizeMult = strategy.getSizeMultiplier
       ? strategy.getSizeMultiplier(signal, candle, { ...ctx, extra })
       : 1.0;
     logConvictionComparison(acct.config.name, oldSizeMult, csResult, i);
 
-    // Skip if conviction score below minimum threshold
-    if (csResult.verdict === 'SKIP') {
-      debug(acct, `SWEEP @ $${candle.close.toFixed(0)} pool=$${zone.level?.toFixed(0)} → BLOCKED: conviction_skip (CS=${csResult.score.toFixed(2)})`);
-      break;
-    }
+    // Conviction score is logged but NEVER blocks trades — Gate7 + CVD handle quality filtering
 
     // ── Sizing: SMART uses signal-strength scoring, others use conviction score ──
     let sizeMult, riskAmount, signalScore = null;
@@ -435,8 +428,8 @@ function processCandleForAccount(acct, candleIndex) {
     
     const riskResult = computeRiskLevel({ signalScore: ssResult, coinHealth, volumeRatio: volRatio });
     
-    if (riskResult.level === 0 || ssResult.verdict === 'SKIP') {
-      debug(acct, `SWEEP @ $${candle.close.toFixed(0)} pool=$${zone.level?.toFixed(0)} → SKIP: ${ssResult.reason} (score=${ssResult.score})`);
+    if (riskResult.level === 0) {  // Only skip if risk engine says NO (level=0)
+      debug(acct, `SWEEP @ $${candle.close.toFixed(0)} pool=$${zone.level?.toFixed(0)} → SKIP: risk level 0`);
       continue;
     }
     
