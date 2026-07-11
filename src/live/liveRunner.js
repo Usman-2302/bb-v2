@@ -87,6 +87,7 @@ function detectPools(type) {
 }
 
 async function processCandle(candle, i) {
+  try {
   const regime = detectRegime(candle, i);
   if (regime !== lastRegime) { console.log('[DRIFT] ' + lastRegime + ' → ' + regime); lastRegime = regime; }
 
@@ -158,6 +159,7 @@ async function processCandle(candle, i) {
       break;
     }
   }
+  } catch (e) { console.error('[PROCESS_CANDLE] Error:', e.message, '| i=' + i); }
 }
 
 function umpireReport() {
@@ -220,7 +222,7 @@ async function main() {
         lastProcessed = k[0];
         if (candles.length % 24 === 0) umpireReport();
       }
-    } catch (e) {}
+    } catch (e) { console.error('[REST_POLL] Error:', e.message); }
   }, 30000);
 
   const wsUrl = 'wss://fstream.binance.com/ws/' + SYMBOL + '@kline_15m';
