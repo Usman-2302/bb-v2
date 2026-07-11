@@ -196,7 +196,14 @@ async function main() {
     console.log('  Backfilled ' + candles.length + ' candles');
   } catch (e) { console.error('Backfill failed:', e.message); process.exit(1); }
   computeIndicators();
-  console.log('  Warmup ready.');
+  console.log('  Warmup ready. Scanning for warmup trades...');
+
+  // Scan last 200 warmup candles for missed sweeps
+  const scanStart = Math.max(400, candles.length - 200);
+  for (let si = scanStart; si < candles.length; si++) {
+    await processCandle(candles[si], si);
+  }
+  console.log('  Scan complete. Trades found: ' + trades);
 
   let lastProcessed = candles[candles.length - 1]?.openTime || 0;
   setInterval(async () => {
