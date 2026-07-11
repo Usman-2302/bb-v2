@@ -16,7 +16,7 @@ const SECRET_KEY = process.env.BINANCE_SECRET_KEY || '';
 const BASE_URL = 'https://fapi.binance.com';
 const INITIAL_CAPITAL = 100;
 
-const SWEEP_RVOL_MIN = 1.2, STOP_ATR_MULT = 1.0, TP_R_MULT = 3.0;
+const SWEEP_RVOL_MIN = 0.6, STOP_ATR_MULT = 1.0, TP_R_MULT = 3.0;
 const MAX_CONCURRENT = 1, RISK_PCT = 0.02, SKIP_RANGING = true;
 
 const { ema } = require('../indicators/ema');
