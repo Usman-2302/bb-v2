@@ -118,10 +118,11 @@ async function processCandle(candle, i) {
 
   if (regime === 'BULL') {
     const pools = detectPools('LONG');
-    let poolChecked = 0;
+    let found = false;
     for (const pool of pools) {
-      if (pool.formed > i || pool.expires < i) { poolChecked++; continue; }
-      if (candle.low >= pool.level || candle.close <= pool.level) { poolChecked++; continue; }
+      if (pool.formed > i || pool.expires < i) continue;
+      if (candle.low >= pool.level || candle.close <= pool.level) continue;
+      found = true;
       sweepsDetected++;
       if ((cv - pv) <= 0) { ghostsBlocked++; continue; }
       const entry = pool.level, stopDist = av * STOP_ATR_MULT;
@@ -137,6 +138,9 @@ async function processCandle(candle, i) {
       }
       console.log('[ENTRY] LONG @ $' + entry.toFixed(0) + ' | Risk: $' + riskAmt.toFixed(2) + ' | ' + regime);
       break;
+    }
+    if (!found && pools.length > 0) {
+      // Sweep conditions met but no pool matched — log for debugging
     }
   } else if (regime === 'BEAR') {
     const pools = detectPools('SHORT');
