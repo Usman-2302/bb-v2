@@ -118,14 +118,15 @@ async function processCandle(candle, i) {
 
   if (regime === 'BULL') {
     const pools = detectPools('LONG');
+    let poolChecked = 0;
     for (const pool of pools) {
-      if (pool.formed > i || pool.expires < i) continue;
-      if (candle.low >= pool.level || candle.close <= pool.level) continue;
+      if (pool.formed > i || pool.expires < i) { poolChecked++; continue; }
+      if (candle.low >= pool.level || candle.close <= pool.level) { poolChecked++; continue; }
       sweepsDetected++;
       if ((cv - pv) <= 0) { ghostsBlocked++; continue; }
       const entry = pool.level, stopDist = av * STOP_ATR_MULT;
       const stop = entry - stopDist, tp = entry + stopDist * TP_R_MULT;
-      if (stopDist <= 0 || entry <= stop) { rvolBlocked++; continue; }
+      if (stopDist <= 0 || entry <= stop) { rvolBlocked++; console.log('[DEBUG] LONG entry failed: entry='+entry.toFixed(0)+' stop='+stop.toFixed(0)+' av='+av.toFixed(2)+' stopDist='+stopDist.toFixed(2)); continue; }
       const riskAmt = equity * RISK_PCT;
       openTrade = { side: 'LONG', entry, stop, tp, risk: riskAmt, idx: i, regime };
       if (LIVE_MODE) {
@@ -146,7 +147,7 @@ async function processCandle(candle, i) {
       if ((cv - pv) >= 0) { ghostsBlocked++; continue; }
       const entry = pool.level, stopDist = av * STOP_ATR_MULT;
       const stop = entry + stopDist, tp = entry - stopDist * TP_R_MULT;
-      if (stopDist <= 0 || entry >= stop) { rvolBlocked++; continue; }
+      if (stopDist <= 0 || entry >= stop) { rvolBlocked++; console.log('[DEBUG] SHORT entry failed: entry='+entry.toFixed(0)+' stop='+stop.toFixed(0)+' av='+av.toFixed(2)); continue; }
       const riskAmt = equity * RISK_PCT;
       openTrade = { side: 'SHORT', entry, stop, tp, risk: riskAmt, idx: i, regime };
       if (LIVE_MODE) {
