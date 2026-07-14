@@ -201,8 +201,8 @@ async function main() {
   computeIndicators();
   console.log('  Warmup ready. Scanning for warmup trades...');
 
-  // Scan last 200 warmup candles for missed sweeps
-  const scanStart = Math.max(400, candles.length - 200);
+  // Scan ALL warmup candles (from index 300) for missed sweeps
+  const scanStart = 300;
   for (let si = scanStart; si < candles.length; si++) {
     await processCandle(candles[si], si);
   }
