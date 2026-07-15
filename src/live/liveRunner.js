@@ -203,14 +203,22 @@ async function main() {
     console.log('  Backfilled ' + candles.length + ' candles');
   } catch (e) { console.error('Backfill failed:', e.message); process.exit(1); }
   computeIndicators();
-  console.log('  Warmup ready. Scanning for warmup trades...');
+  console.log('  Warmup ready. Scanning for diagnostic trades...');
 
-  // Scan ALL warmup candles (from index 300) for missed sweeps
   const scanStart = 300;
   for (let si = scanStart; si < candles.length; si++) {
     await processCandle(candles[si], si);
   }
-  console.log('  Scan complete. Trades found: ' + trades);
+  console.log('  Scan found: ' + trades + ' trades (diagnostic only)');
+
+  // Reset to real capital — warmup scan was diagnostic
+  equity = INITIAL_CAPITAL;
+  maxEquity = equity;
+  trades = 0; wins = 0; losses = 0;
+  longTrades = 0; shortTrades = 0;
+  sweepsDetected = 0; ghostsBlocked = 0; rvolBlocked = 0; rangingSkipped = 0;
+  openTrade = null;
+  console.log('  State reset. Starting LIVE with $' + equity.toFixed(2));
 
   let lastProcessed = candles[candles.length - 1]?.openTime || 0;
   setInterval(async () => {
