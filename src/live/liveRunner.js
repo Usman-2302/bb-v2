@@ -14,7 +14,7 @@ const LIVE_MODE = process.env.BB_LIVE === 'true';
 const API_KEY = process.env.BINANCE_API_KEY || '';
 const SECRET_KEY = process.env.BINANCE_SECRET_KEY || '';
 const BASE_URL = 'https://fapi.binance.com';
-const INITIAL_CAPITAL = 100;
+const INITIAL_CAPITAL = parseFloat(process.env.BB_CAPITAL || '100');
 
 const SWEEP_RVOL_MIN = 0.6, STOP_ATR_MULT = 0.5, TP_R_MULT = 2.0;
 const MAX_CONCURRENT = 1, RISK_PCT = 0.02, SKIP_RANGING = true;
