@@ -1,4 +1,5 @@
 'use strict';
+require('dotenv').config();
 /**
  * BulletBrain v3.0 — Live Runner (LONG + SHORT)
  * BULL → LONG  |  BEAR → SHORT  |  RANGING → FLAT
