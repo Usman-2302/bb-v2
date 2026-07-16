@@ -26,6 +26,7 @@ const { rvol } = require('../indicators/rvol');
 const { cvd: cvdFn } = require('../indicators/cvd');
 
 const candles = [];
+let isScanning = false;  // true during warmup scan — skip real orders
 let atr14 = [], rvolVals = [], cvdVals = { delta: [], cumulative: [] };
 let lastRegime = 'RANGING';
 let equity = INITIAL_CAPITAL, maxEquity = equity;
@@ -131,7 +132,7 @@ async function processCandle(candle, i) {
       if (stopDist <= 0 || entry <= stop) { rvolBlocked++; console.log('[DEBUG] LONG entry failed: entry='+entry.toFixed(0)+' stop='+stop.toFixed(0)+' av='+av.toFixed(2)+' stopDist='+stopDist.toFixed(2)); continue; }
       const riskAmt = equity * RISK_PCT;
       openTrade = { side: 'LONG', entry, stop, tp, risk: riskAmt, idx: i, regime };
-      if (LIVE_MODE) {
+      if (LIVE_MODE && !isScanning) {
         const qty = riskAmt / (entry * (stopDist / entry));
         await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'LIMIT', price: entry.toFixed(2), quantity: qty.toFixed(4), timeInForce: 'GTC' }, true);
         await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'STOP_MARKET', stopPrice: stop.toFixed(2), closePosition: 'true' }, true);
@@ -155,7 +156,7 @@ async function processCandle(candle, i) {
       if (stopDist <= 0 || entry >= stop) { rvolBlocked++; console.log('[DEBUG] SHORT entry failed: entry='+entry.toFixed(0)+' stop='+stop.toFixed(0)+' av='+av.toFixed(2)); continue; }
       const riskAmt = equity * RISK_PCT;
       openTrade = { side: 'SHORT', entry, stop, tp, risk: riskAmt, idx: i, regime };
-      if (LIVE_MODE) {
+      if (LIVE_MODE && !isScanning) {
         const qty = riskAmt / (entry * (stopDist / entry));
         await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'LIMIT', price: entry.toFixed(2), quantity: qty.toFixed(4), timeInForce: 'GTC' }, true);
         await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'STOP_MARKET', stopPrice: stop.toFixed(2), closePosition: 'true' }, true);
@@ -206,10 +207,12 @@ async function main() {
   computeIndicators();
   console.log('  Warmup ready. Scanning for diagnostic trades...');
 
+  isScanning = true;
   const scanStart = 300;
   for (let si = scanStart; si < candles.length; si++) {
     await processCandle(candles[si], si);
   }
+  isScanning = false;
   console.log('  Scan found: ' + trades + ' trades (diagnostic only)');
 
   // Reset to real capital — warmup scan was diagnostic
