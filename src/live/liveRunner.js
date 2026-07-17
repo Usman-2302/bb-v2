@@ -116,7 +116,13 @@ async function processCandle(candle, i) {
   if (SKIP_RANGING && (regime === 'RANGING' || regime === 'RANGING_ZOMBIE')) { rangingSkipped++; return; }
 
   const rv = rvolVals[i] || 0, cv = cvdVals.delta[i] || 0, pv = cvdVals.delta[i-1] || 0, av = atr14[i] || 0;
-  if (rv < SWEEP_RVOL_MIN) return;
+  if (rv < SWEEP_RVOL_MIN) {
+    if (rv > 0 && regime !== 'RANGING') console.log('[DBG] RVOL skip: rv='+rv.toFixed(2)+' < '+SWEEP_RVOL_MIN+' regime='+regime+' candle='+new Date(candle.openTime).toISOString().slice(5,16));
+    return;
+  }
+
+  // Debug: we made it past RVOL check
+  if (Math.random() < 0.05) console.log('[DBG] PASSED filters: regime='+regime+' rv='+rv.toFixed(2)+' pools='+detectPools(regime==='BULL'?'LONG':'SHORT').length+' candle='+new Date(candle.openTime).toISOString().slice(5,16));
 
   if (regime === 'BULL') {
     const pools = detectPools('LONG');
