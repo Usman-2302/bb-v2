@@ -201,11 +201,11 @@ async function main() {
   console.log('  RVOL≥' + SWEEP_RVOL_MIN + ' | ' + TP_R_MULT + 'R Target | ' + STOP_ATR_MULT + ' ATR');
   console.log('═══════════════════════════════════════════════');
 
-  console.log('Backfilling 1000 candles...');
-  const endTime = Date.now(), startTime = endTime - 1000 * 15 * 60 * 1000;
+  console.log('Backfilling 1500 candles...');
+  const endTime = Date.now(), startTime = endTime - 1500 * 15 * 60 * 1000;
   try {
     const resp = await axios.get('https://fapi.binance.com/fapi/v1/klines', {
-      params: { symbol: SYMBOL.toUpperCase(), interval: '15m', startTime, endTime, limit: 1000 }, timeout: 15000,
+      params: { symbol: SYMBOL.toUpperCase(), interval: '15m', startTime, endTime, limit: 1500 }, timeout: 15000,
     });
     for (const k of resp.data) candles.push({ openTime: k[0], closeTime: k[6], open: +k[1], high: +k[2], low: +k[3], close: +k[4], volume: +k[5] });
     console.log('  Backfilled ' + candles.length + ' candles');
@@ -239,7 +239,7 @@ async function main() {
       for (const k of resp.data) {
         if (k[0] <= lastProcessed) continue;
         const candle = { openTime: k[0], closeTime: k[6], open: +k[1], high: +k[2], low: +k[3], close: +k[4], volume: +k[5] };
-        candles.push(candle); if (candles.length > 10000) candles.shift();
+        candles.push(candle); if (candles.length > 15000) candles.shift();
         computeIndicators();
         await processCandle(candle, candles.length - 1);
         lastProcessed = k[0];
@@ -259,7 +259,7 @@ async function main() {
         const k = msg.k, openTime = k.t;
         if (openTime <= lastProcessed) return;
         const candle = { openTime, closeTime: k.T, open: +k.o, high: +k.h, low: +k.l, close: +k.c, volume: +k.v };
-        candles.push(candle); if (candles.length > 10000) candles.shift();
+        candles.push(candle); if (candles.length > 15000) candles.shift();
         computeIndicators();
         await processCandle(candle, candles.length - 1);
         lastProcessed = openTime;
