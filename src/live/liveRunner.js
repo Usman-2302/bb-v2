@@ -72,7 +72,7 @@ function detectPools(type) {
   for (let a = 0; a < sw.length; a++) {
     for (let b = a + 1; b < sw.length; b++) {
       const si = sw[a], sj = sw[b];
-      if (sj - si > 50) break; if (sj - si < 2) continue;
+      if (sj - si > 80) break; if (sj - si < 2) continue;
       const v1 = type === 'LONG' ? candles[si].low : candles[si].high;
       const v2 = type === 'LONG' ? candles[sj].low : candles[sj].high;
       if (Math.abs(v1 - v2) / v1 >= 0.005) continue;
@@ -82,7 +82,7 @@ function detectPools(type) {
         if (type === 'LONG' ? cv < Math.min(v1, v2) : cv > Math.max(v1, v2)) { swept = true; break; }
       }
       if (swept) continue;
-      pools.push({ level: Math.floor((v1 + v2) / 2), formed: sj, expires: sj + 200 });
+      pools.push({ level: Math.floor((v1 + v2) / 2), formed: sj, expires: sj + 500 });
     }
   }
   return pools;
