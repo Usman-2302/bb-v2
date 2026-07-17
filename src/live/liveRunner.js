@@ -148,7 +148,7 @@ async function processCandle(candle, i) {
       break;
     }
     if (!found && pools.length > 0) {
-      // Sweep conditions met but no pool matched — log for debugging
+      console.log('[DBG] No pool match: regime='+regime+' candle H='+candle.high.toFixed(0)+' L='+candle.low.toFixed(0)+' C='+candle.close.toFixed(0)+' pools='+pools.length+' nearest='+(pools[0]?.level||'none')+' expired='+pools.filter(p=>p.expires<i).length+' future='+pools.filter(p=>p.formed>i).length);
     }
   } else if (regime === 'BEAR') {
     const pools = detectPools('SHORT');
