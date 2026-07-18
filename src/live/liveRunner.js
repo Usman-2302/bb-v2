@@ -91,7 +91,7 @@ function detectPools(type) {
 async function processCandle(candle, i) {
   try {
   const regime = detectRegime(candle, i);
-  if (regime !== lastRegime) { console.log('[DRIFT] ' + lastRegime + ' → ' + regime); lastRegime = regime; }
+  if (regime !== lastRegime) { console.log('[REGIME] ' + lastRegime + ' → ' + regime); lastRegime = regime; }
 
   if (openTrade) {
     const t = openTrade; let closed = false, pnl = 0, outcome = '';
@@ -117,12 +117,12 @@ async function processCandle(candle, i) {
 
   const rv = rvolVals[i] || 0, cv = cvdVals.delta[i] || 0, pv = cvdVals.delta[i-1] || 0, av = atr14[i] || 0;
   if (rv < SWEEP_RVOL_MIN) {
-    if (rv > 0 && regime !== 'RANGING') console.log('[DBG] RVOL skip: rv='+rv.toFixed(2)+' < '+SWEEP_RVOL_MIN+' regime='+regime+' candle='+new Date(candle.openTime).toISOString().slice(5,16));
+    if (rv > 0 && regime !== 'RANGING') console.log('[FILTER] RVOL= rv='+rv.toFixed(2)+' < '+SWEEP_RVOL_MIN+' regime='+regime+' candle='+new Date(candle.openTime).toISOString().slice(5,16));
     return;
   }
 
   // Debug: we made it past RVOL check
-  if (Math.random() < 0.05) console.log('[DBG] PASSED filters: regime='+regime+' rv='+rv.toFixed(2)+' pools='+detectPools(regime==='BULL'?'LONG':'SHORT').length+' candle='+new Date(candle.openTime).toISOString().slice(5,16));
+  if (Math.random() < 0.05) console.log('[CHECK] regime='+regime+' rv='+rv.toFixed(2)+' pools='+detectPools(regime==='BULL'?'LONG':'SHORT').length+' candle='+new Date(candle.openTime).toISOString().slice(5,16));
 
   if (regime === 'BULL') {
     const pools = detectPools('LONG');
@@ -135,7 +135,7 @@ async function processCandle(candle, i) {
       if ((cv - pv) <= 0) { ghostsBlocked++; continue; }
       const entry = pool.level, stopDist = av * STOP_ATR_MULT;
       const stop = entry - stopDist, tp = entry + stopDist * TP_R_MULT;
-      if (stopDist <= 0 || entry <= stop) { rvolBlocked++; console.log('[DEBUG] LONG entry failed: entry='+entry.toFixed(0)+' stop='+stop.toFixed(0)+' av='+av.toFixed(2)+' stopDist='+stopDist.toFixed(2)); continue; }
+      if (stopDist <= 0 || entry <= stop) { rvolBlocked++; console.log('[BLOCK] LONG entry failed: entry='+entry.toFixed(0)+' stop='+stop.toFixed(0)+' av='+av.toFixed(2)+' stopDist='+stopDist.toFixed(2)); continue; }
       const riskAmt = equity * RISK_PCT;
       openTrade = { side: 'LONG', entry, stop, tp, risk: riskAmt, idx: i, regime };
       if (LIVE_MODE && !isScanning) {
@@ -144,11 +144,11 @@ async function processCandle(candle, i) {
         await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'STOP_MARKET', stopPrice: stop.toFixed(2), closePosition: 'true' }, true);
         await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'TAKE_PROFIT_MARKET', stopPrice: tp.toFixed(2), closePosition: 'true' }, true);
       }
-      console.log('[ENTRY] LONG @ $' + entry.toFixed(0) + ' | Risk: $' + riskAmt.toFixed(2) + ' | ' + regime);
+      console.log('[🔥 ENTRY] LONG @ $' + entry.toFixed(0) + ' | Risk: $' + riskAmt.toFixed(2) + ' | ' + regime);
       break;
     }
     if (!found && pools.length > 0) {
-      console.log('[DBG] No pool match: regime='+regime+' candle H='+candle.high.toFixed(0)+' L='+candle.low.toFixed(0)+' C='+candle.close.toFixed(0)+' pools='+pools.length+' nearest='+(pools[0]?.level||'none')+' expired='+pools.filter(p=>p.expires<i).length+' future='+pools.filter(p=>p.formed>i).length);
+      console.log('[BLOCK] No pool sweep regime='+regime+' candle H='+candle.high.toFixed(0)+' L='+candle.low.toFixed(0)+' C='+candle.close.toFixed(0)+' pools='+pools.length+' nearest='+(pools[0]?.level||'none')+' expired='+pools.filter(p=>p.expires<i).length+' future='+pools.filter(p=>p.formed>i).length);
     }
   } else if (regime === 'BEAR') {
     const pools = detectPools('SHORT');
@@ -159,7 +159,7 @@ async function processCandle(candle, i) {
       if ((cv - pv) >= 0) { ghostsBlocked++; continue; }
       const entry = pool.level, stopDist = av * STOP_ATR_MULT;
       const stop = entry + stopDist, tp = entry - stopDist * TP_R_MULT;
-      if (stopDist <= 0 || entry >= stop) { rvolBlocked++; console.log('[DEBUG] SHORT entry failed: entry='+entry.toFixed(0)+' stop='+stop.toFixed(0)+' av='+av.toFixed(2)); continue; }
+      if (stopDist <= 0 || entry >= stop) { rvolBlocked++; console.log('[BLOCK] SHORT entry failed: entry='+entry.toFixed(0)+' stop='+stop.toFixed(0)+' av='+av.toFixed(2)); continue; }
       const riskAmt = equity * RISK_PCT;
       openTrade = { side: 'SHORT', entry, stop, tp, risk: riskAmt, idx: i, regime };
       if (LIVE_MODE && !isScanning) {
@@ -168,7 +168,7 @@ async function processCandle(candle, i) {
         await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'STOP_MARKET', stopPrice: stop.toFixed(2), closePosition: 'true' }, true);
         await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'TAKE_PROFIT_MARKET', stopPrice: tp.toFixed(2), closePosition: 'true' }, true);
       }
-      console.log('[ENTRY] SHORT @ $' + entry.toFixed(0) + ' | Risk: $' + riskAmt.toFixed(2) + ' | ' + regime);
+      console.log('[🔥 ENTRY] SHORT @ $' + entry.toFixed(0) + ' | Risk: $' + riskAmt.toFixed(2) + ' | ' + regime);
       break;
     }
   }
