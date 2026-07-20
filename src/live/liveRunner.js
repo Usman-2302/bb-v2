@@ -59,8 +59,8 @@ function detectRegime(candle, i) {
   const slope10 = (e200[i] - e200[Math.max(0, i - 10)]) / e200[Math.max(0, i - 10)];
   const atrPct = atrArr[i] / candle.close * 100;
   if (atrPct > 5) return 'CRISIS';
-  if (slope10 > 0.001 && priceAbove) return 'BULL';
-  if (slope10 < -0.001 && !priceAbove) return 'BEAR';
+  if (slope10 > 0.0007 && priceAbove) return 'BULL';
+  if (slope10 < -0.0007 && !priceAbove) return 'BEAR';
   return 'RANGING';
 }
 
