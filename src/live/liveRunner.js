@@ -22,8 +22,20 @@ const MAX_CONCURRENT = 1, RISK_PCT = 0.02, SKIP_RANGING = true;
 
 const { ema } = require('../indicators/ema');
 const { atr } = require('../indicators/atr');
-const { rvol } = require('../indicators/rvol');
 const { cvd: cvdFn } = require('../indicators/cvd');
+
+// Simple 20-candle rolling SMA RVOL (not time-normalized)
+// Time-normalized RVOL inflates baseline with crash day volume
+function simpleRvol(candles, period = 20) {
+  const result = new Array(candles.length).fill(1.0);
+  for (let i = period; i < candles.length; i++) {
+    let sum = 0;
+    for (let j = i - period; j < i; j++) sum += candles[j].volume;
+    const avg = sum / period;
+    result[i] = avg > 0 ? candles[i].volume / avg : 1.0;
+  }
+  return result;
+}
 
 const candles = [];
 let isScanning = false;  // true during warmup scan — skip real orders
@@ -196,7 +208,7 @@ function umpireReport() {
 function computeIndicators() {
   if (candles.length < 200) return;
   atr14 = atr(candles, 14);
-  rvolVals = rvol(candles, '15m', 20);
+  rvolVals = simpleRvol(candles, 20);
   cvdVals = cvdFn(candles);
 }
 
