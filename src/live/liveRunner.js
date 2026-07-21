@@ -259,6 +259,7 @@ async function main() {
       });
       for (const k of resp.data) {
         if (k[0] <= lastProcessed) continue;
+        if (k[6] > Date.now()) continue; // Skip unclosed candle (partial volume)
         const candle = { openTime: k[0], closeTime: k[6], open: +k[1], high: +k[2], low: +k[3], close: +k[4], volume: +k[5] };
         candles.push(candle); if (candles.length > 15000) candles.shift();
         computeIndicators();
