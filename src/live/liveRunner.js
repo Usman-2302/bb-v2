@@ -17,7 +17,7 @@ const SECRET_KEY = process.env.BINANCE_SECRET_KEY || '';
 const BASE_URL = 'https://fapi.binance.com';
 const INITIAL_CAPITAL = parseFloat(process.env.BB_CAPITAL || '100');
 
-const SWEEP_RVOL_MIN = 0.6, STOP_ATR_MULT = 0.5, TP_R_MULT = 2.0;
+const SWEEP_RVOL_MIN = 0.5, STOP_ATR_MULT = 0.5, TP_R_MULT = 2.0;  // 0.6→0.5: SMA20 temporarily elevated by spike candles
 const MAX_CONCURRENT = 1, RISK_PCT = 0.02, SKIP_RANGING = true;
 
 const { ema } = require('../indicators/ema');
