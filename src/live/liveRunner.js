@@ -249,6 +249,27 @@ async function main() {
   sweepsDetected = 0; ghostsBlocked = 0; rvolBlocked = 0; rangingSkipped = 0;
   openTrade = null;
   pendingOrder = null;
+
+  // ── RVOL BASELINE RESET ──────────────────────────────────────
+  // The warmup scan's candle buffer contains 1500 historical candles
+  // including volatile crash days with 200K-500K volume per candle.
+  // simpleRvol's 20-candle SMA carries those into live, making normal
+  // live volume (20K-50K) score RVOL 0.3-0.5 and get filtered out.
+  //
+  // Fix: trim the buffer to the last 500 candles after warmup.
+  //   500 = enough for: EMA200 (needs 200) + pool detection history
+  //   (pools form within 80 candles, expire after 500) + SMA20 baseline
+  //   reset to recent 20 candles only (no crash-day volume contamination).
+  //
+  // Result: simpleRvol SMA20 now uses only the most recent 20 candles,
+  // which reflect current normal volume levels, not historical spikes.
+  const KEEP_CANDLES = 500;
+  if (candles.length > KEEP_CANDLES) {
+    const removed = candles.splice(0, candles.length - KEEP_CANDLES).length;
+    console.log('  RVOL baseline reset: trimmed ' + removed + ' warmup candles, keeping last ' + KEEP_CANDLES);
+  }
+  computeIndicators(); // recompute with fresh baseline
+
   console.log('  State reset. Starting LIVE with $' + equity.toFixed(2));
 
   let lastProcessed = candles[candles.length - 1]?.openTime || 0;
