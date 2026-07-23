@@ -270,7 +270,6 @@ async function main() {
   }
   computeIndicators(); // recompute with fresh baseline
 
-  lastProcessed = candles.length > 0 ? candles[candles.length-1].openTime : 0;
   console.log('  State reset. Starting LIVE with $' + equity.toFixed(2));
 
   let lastProcessed = candles[candles.length - 1]?.openTime || 0;
