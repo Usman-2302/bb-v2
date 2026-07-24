@@ -274,6 +274,7 @@ async function main() {
 
   let lastProcessed = candles[candles.length - 1]?.openTime || 0;
   setInterval(async () => {
+      console.log("[REST] Poll alive, lp=" + new Date(lastProcessed).toISOString().slice(5,16) + " candles=" + candles.length);
     try {
       const resp = await axios.get('https://fapi.binance.com/fapi/v1/klines', {
         params: { symbol: SYMBOL.toUpperCase(), interval: '15m', limit: 2 }, timeout: 10000,

@@ -1,43 +1,66 @@
 'use strict';
 
 /**
- * Local Backtest - Exact replica of liveRunner.js logic
- * Tests last 15 days of ETHUSDT 15m data
+ * Download last 10 days of live ETHUSDT 15m data from Binance and backtest
  */
 
-const fs = require('fs');
-const path = require('path');
-const readline = require('readline');
-const { createReadStream } = require('fs');
+const axios = require('axios');
 const { ema } = require('./src/indicators/ema');
 const { atr } = require('./src/indicators/atr');
 const { cvd: cvdFn } = require('./src/indicators/cvd');
 
-const DATA_PATH = './data/historical';
 const SYMBOL = 'ETHUSDT';
-const TIMEFRAME = '15m';
+const INTERVAL = '15m';
+const DAYS = 10;
+const LIMIT = 1500; // Max per request
 
-const SWEEP_RVOL_MIN = 0.5;
-const STOP_ATR_MULT = 0.5;
-const TP_R_MULT = 2.0;
-const MAX_CONCURRENT = 1;
-const RISK_PCT = 0.02;
-const SKIP_RANGING = true;
-
-let equity = 100;
-let maxEquity = equity;
-let openTrade = null;
-let trades = 0, wins = 0, losses = 0;
-let longTrades = 0, shortTrades = 0;
-let sweepsDetected = 0, ghostsBlocked = 0, rvolBlocked = 0, rangingSkipped = 0, noPoolSweep = 0;
-
-async function loadNDJSON(filePath) {
-  const candles = [];
-  const rl = readline.createInterface({ input: createReadStream(filePath), crlfDelay: Infinity });
-  for await (const line of rl) {
-    if (line.trim()) candles.push(JSON.parse(line));
+async function downloadData() {
+  console.log(`Downloading last ${DAYS} days of ${SYMBOL} ${INTERVAL} from Binance...`);
+  const endTime = Date.now();
+  const startTime = endTime - DAYS * 24 * 60 * 60 * 1000;
+  
+  const allCandles = [];
+  let currentEnd = endTime;
+  
+  while (currentEnd > startTime) {
+    const resp = await axios.get('https://fapi.binance.com/fapi/v1/klines', {
+      params: {
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        startTime,
+        endTime: currentEnd,
+        limit: LIMIT
+      },
+      timeout: 15000
+    });
+    
+    const candles = resp.data.map(k => ({
+      openTime: k[0],
+      closeTime: k[6],
+      open: +k[1],
+      high: +k[2],
+      low: +k[3],
+      close: +k[4],
+      volume: +k[5]
+    }));
+    
+    if (candles.length === 0) break;
+    
+    allCandles.unshift(...candles);
+    currentEnd = candles[0].openTime - 1;
+    
+    console.log(`  Got ${candles.length} candles, earliest: ${new Date(candles[0].openTime).toISOString()}`);
+    
+    if (candles.length < LIMIT) break;
+    await new Promise(r => setTimeout(r, 100)); // Rate limit
   }
-  return candles;
+  
+  // Deduplicate and sort
+  const unique = allCandles.filter((c, i, arr) => i === 0 || c.openTime !== arr[i-1].openTime);
+  unique.sort((a, b) => a.openTime - b.openTime);
+  
+  console.log(`Total: ${unique.length} candles (${new Date(unique[0].openTime).toISOString()} → ${new Date(unique[unique.length-1].openTime).toISOString()})`);
+  return unique;
 }
 
 function simpleRvol(candles, period = 20) {
@@ -66,7 +89,7 @@ function detectRegime(candle, i, candles, atr14) {
 
 function detectPools(type, candles, currentIndex) {
   const pools = [], sw = [];
-  for (let j = 1; j < currentIndex - 1; j++) {
+  for (let j = 1; j < candles.length - 1; j++) {
     if (type === 'LONG' && candles[j].low < candles[j-1].low && candles[j].low < candles[j+1].low) sw.push(j);
     if (type === 'SHORT' && candles[j].high > candles[j-1].high && candles[j].high > candles[j+1].high) sw.push(j);
   }
@@ -90,31 +113,42 @@ function detectPools(type, candles, currentIndex) {
 }
 
 async function main() {
-  console.log('═══════════════════════════════════════════════');
-  console.log('  Local Backtest - liveRunner.js Logic (Last 15 Days)');
-  console.log('═══════════════════════════════════════════════\n');
-
-  const filePath = path.join(DATA_PATH, `${SYMBOL}_${TIMEFRAME}_tagged.ndjson`);
-  console.log('Loading data...');
-  const allCandles = await loadNDJSON(filePath);
-  console.log(`  Loaded ${allCandles.length} total candles`);
-
-  const endTime = allCandles[allCandles.length - 1].openTime;
-  const tenDaysAgo = endTime - 10 * 24 * 60 * 60 * 1000;
-  const candles = allCandles.filter(c => c.openTime >= tenDaysAgo);
-  console.log(`  Last 10 days of data: ${candles.length} candles (${new Date(candles[0].openTime).toISOString()} → ${new Date(candles[candles.length-1].openTime).toISOString()})`);
-
+  const candles = await downloadData();
+  
   console.log('\nComputing indicators...');
   const atr14 = atr(candles, 14);
   const rvolVals = simpleRvol(candles, 20);
   const cvdVals = cvdFn(candles);
-
-  console.log('Running backtest...\n');
-
-  for (let i = 200; i < candles.length; i++) {
-    const candle = candles[i];
-    const regime = detectRegime(candle, i, candles, atr14);
-
+  
+  // Simulate the live runner's warmup trim (keep last 500)
+  const KEEP_CANDLES = 500;
+  let testCandles = candles;
+  let testAtr14 = atr14;
+  let testRvol = rvolVals;
+  let testCvd = cvdVals;
+  
+  if (testCandles.length > KEEP_CANDLES) {
+    const removed = testCandles.length - KEEP_CANDLES;
+    testCandles = testCandles.slice(-KEEP_CANDLES);
+    testAtr14 = testAtr14.slice(-KEEP_CANDLES);
+    testRvol = testRvol.slice(-KEEP_CANDLES);
+    testCvd = { delta: testCvd.delta.slice(-KEEP_CANDLES), cumulative: testCvd.cumulative.slice(-KEEP_CANDLES) };
+    console.log(`Trimmed ${removed} warmup candles, keeping last ${KEEP_CANDLES}`);
+  }
+  
+  console.log(`Backtesting ${testCandles.length} candles...\n`);
+  
+  const SWEEP_RVOL_MIN = 0.5, STOP_ATR_MULT = 0.5, TP_R_MULT = 2.0, RISK_PCT = 0.02, SKIP_RANGING = true;
+  
+  let equity = 100, maxEquity = 100;
+  let openTrade = null;
+  let trades = 0, wins = 0, losses = 0, longTrades = 0, shortTrades = 0;
+  let sweepsDetected = 0, ghostsBlocked = 0, rvolBlocked = 0, rangingSkipped = 0, noPoolSweep = 0;
+  
+  for (let i = 200; i < testCandles.length; i++) {
+    const candle = testCandles[i];
+    const regime = detectRegime(candle, i, testCandles, testAtr14);
+    
     if (openTrade) {
       const t = openTrade; let closed = false, pnl = 0, outcome = '';
       if (t.side === 'LONG') {
@@ -132,36 +166,31 @@ async function main() {
         openTrade = null;
       }
     }
-
     if (openTrade) continue;
-
+    
     if (SKIP_RANGING && (regime === 'RANGING' || regime === 'RANGING_ZOMBIE')) { rangingSkipped++; continue; }
-
-    const rv = rvolVals[i] || 0, cv = cvdVals.delta[i] || 0, pv = cvdVals.delta[i-1] || 0, av = atr14[i] || 0;
-    if (rv < SWEEP_RVOL_MIN) {
-      if (rv > 0 && regime !== 'RANGING') rvolBlocked++;
-      continue;
-    }
-
+    
+    const rv = testRvol[i] || 0, cv = testCvd.delta[i] || 0, pv = testCvd.delta[i-1] || 0, av = testAtr14[i] || 0;
+    if (rv < SWEEP_RVOL_MIN) { if (rv > 0 && regime !== 'RANGING') rvolBlocked++; continue; }
+    
     if (regime === 'BULL') {
-      const pools = detectPools('LONG', candles, i);
+      const pools = detectPools('LONG', testCandles, i);
       let found = false;
       for (const pool of pools) {
         if (pool.formed > i || pool.expires < i) continue;
         if (candle.low >= pool.level || candle.close <= pool.level) continue;
-        found = true;
-        sweepsDetected++;
+        found = true; sweepsDetected++;
         if ((cv - pv) <= 0) { ghostsBlocked++; continue; }
         const entry = pool.level, stopDist = av * STOP_ATR_MULT;
         const stop = entry - stopDist, tp = entry + stopDist * TP_R_MULT;
-        if (stopDist <= 0 || entry <= stop) { continue; }
+        if (stopDist <= 0 || entry <= stop) continue;
         const riskAmt = equity * RISK_PCT;
         openTrade = { side: 'LONG', entry, stop, tp, risk: riskAmt, idx: i, regime };
         break;
       }
       if (!found && pools.length > 0) noPoolSweep++;
     } else if (regime === 'BEAR') {
-      const pools = detectPools('SHORT', candles, i);
+      const pools = detectPools('SHORT', testCandles, i);
       for (const pool of pools) {
         if (pool.formed > i || pool.expires < i) continue;
         if (candle.high <= pool.level || candle.close >= pool.level) continue;
@@ -169,45 +198,34 @@ async function main() {
         if ((cv - pv) >= 0) { ghostsBlocked++; continue; }
         const entry = pool.level, stopDist = av * STOP_ATR_MULT;
         const stop = entry + stopDist, tp = entry - stopDist * TP_R_MULT;
-        if (stopDist <= 0 || entry >= stop) { continue; }
+        if (stopDist <= 0 || entry >= stop) continue;
         const riskAmt = equity * RISK_PCT;
         openTrade = { side: 'SHORT', entry, stop, tp, risk: riskAmt, idx: i, regime };
         break;
       }
     }
   }
-
+  
   if (openTrade) {
-    const lastCandle = candles[candles.length - 1];
+    const lastCandle = testCandles[testCandles.length - 1];
     const t = openTrade;
     let pnl = 0;
     if (t.side === 'LONG') pnl = (lastCandle.close - t.entry) / (t.entry - t.stop) * t.risk;
     else pnl = (t.entry - lastCandle.close) / (t.stop - t.entry) * t.risk;
     equity += pnl;
   }
-
+  
   const dd = maxEquity > equity ? ((maxEquity - equity) / maxEquity * 100) : 0;
   const wr = trades > 0 ? (wins / trades * 100) : 0;
-  const pnl = equity - 100;
-
+  
   console.log('═══════════════════════════════════════════════');
-  console.log('  BACKTEST RESULTS - Last 15 Days');
+  console.log(`  LIVE DATA BACKTEST - Last ${DAYS} Days (${new Date(testCandles[0].openTime).toISOString().slice(0,10)} → ${new Date(testCandles[testCandles.length-1].openTime).toISOString().slice(0,10)})`);
   console.log('═══════════════════════════════════════════════');
-  console.log(`  Equity: $${equity.toFixed(2)} | PnL: $${pnl.toFixed(2)} | Max DD: ${dd.toFixed(2)}%`);
+  console.log(`  Equity: $${equity.toFixed(2)} | PnL: $${(equity-100).toFixed(2)} (${((equity-100)/100*100).toFixed(1)}%) | Max DD: ${dd.toFixed(2)}%`);
   console.log(`  Trades: ${trades} (L:${longTrades} S:${shortTrades}) | Wins: ${wins} | Losses: ${losses} | WR: ${wr.toFixed(1)}%`);
-  console.log(`  Sweeps Detected: ${sweepsDetected}`);
-  console.log(`  Ghosts Blocked (CVD): ${ghostsBlocked}`);
-  console.log(`  RVOL Blocked (<${SWEEP_RVOL_MIN}): ${rvolBlocked}`);
-  console.log(`  Ranging Skipped: ${rangingSkipped}`);
-  console.log(`  No Pool Sweep: ${noPoolSweep}`);
+  console.log(`  Trades/Day: ${(trades/DAYS).toFixed(1)}`);
+  console.log(`  Sweeps: ${sweepsDetected} | Ghosts: ${ghostsBlocked} | RVOL block: ${rvolBlocked} | Range skip: ${rangingSkipped} | No pool: ${noPoolSweep}`);
   console.log('═══════════════════════════════════════════════\n');
-
-  if (trades > 0) {
-    const avgWin = wins > 0 ? (equity - 100 + losses * 100 * RISK_PCT * TP_R_MULT) / wins : 0;
-    console.log(`  Avg Win: $${(100 * RISK_PCT * TP_R_MULT).toFixed(2)} | Avg Loss: $${(100 * RISK_PCT).toFixed(2)}`);
-  }
-
-  return { equity, trades, wins, losses, wr, dd, sweepsDetected, ghostsBlocked, rvolBlocked, rangingSkipped, noPoolSweep };
 }
 
 main().catch(e => { console.error('Fatal:', e); process.exit(1); });
