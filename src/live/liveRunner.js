@@ -104,7 +104,13 @@ function detectPools(type) {
 async function processCandle(candle, i) {
   try {
   const regime = detectRegime(candle, i);
-  if (regime !== lastRegime) { console.log('[REGIME] ' + lastRegime + ' → ' + regime); lastRegime = regime; }
+  if (regime !== lastRegime) { console.log('[REGIME] ' + lastRegime + ' → ' + regime + ' @ ' + new Date(candle.openTime).toISOString().slice(5,16)); lastRegime = regime; }
+
+  // Log every candle processed in live mode
+  if (!isScanning) {
+    const rv = rvolVals[i] || 0;
+    console.log('[CANDLE] ' + new Date(candle.openTime).toISOString().slice(5,16) + ' i=' + i + ' O=' + candle.open.toFixed(0) + ' H=' + candle.high.toFixed(0) + ' L=' + candle.low.toFixed(0) + ' C=' + candle.close.toFixed(0) + ' V=' + candle.volume.toFixed(0) + ' rv=' + rv.toFixed(3) + ' rg=' + regime);
+  }
 
   if (openTrade) {
     const t = openTrade; let closed = false, pnl = 0, outcome = '';
@@ -274,14 +280,15 @@ async function main() {
 
   let lastProcessed = candles[candles.length - 1]?.openTime || 0;
   setInterval(async () => {
-      console.log("[REST] Poll alive, lp=" + new Date(lastProcessed).toISOString().slice(5,16) + " candles=" + candles.length);
     try {
       const resp = await axios.get('https://fapi.binance.com/fapi/v1/klines', {
         params: { symbol: SYMBOL.toUpperCase(), interval: '15m', limit: 2 }, timeout: 10000,
       });
       for (const k of resp.data) {
-        if (k[0] <= lastProcessed) continue;
-        if (k[6] > Date.now()) continue; // Skip unclosed candle (partial volume)
+        const kTime = new Date(k[0]).toISOString().slice(5,16);
+        if (k[0] <= lastProcessed) { if (Date.now() % 120000 < 30000) console.log('[REST] Skip old ' + kTime + ' (lp=' + new Date(lastProcessed).toISOString().slice(5,16) + ')'); continue; }
+        if (k[6] > Date.now()) { console.log('[REST] Skip unclosed ' + kTime); continue; }
+        console.log('[REST] Processing ' + kTime + ' vol=' + (+k[5]).toFixed(0));
         const candle = { openTime: k[0], closeTime: k[6], open: +k[1], high: +k[2], low: +k[3], close: +k[4], volume: +k[5] };
         candles.push(candle); if (candles.length > 15000) candles.shift();
         computeIndicators();
@@ -302,6 +309,7 @@ async function main() {
         if (msg.e !== 'kline' || !msg.k.x) return;
         const k = msg.k, openTime = k.t;
         if (openTime <= lastProcessed) return;
+        console.log('[WS] Candle ' + new Date(openTime).toISOString().slice(5,16) + ' close=' + (+k.c).toFixed(0));
         const candle = { openTime, closeTime: k.T, open: +k.o, high: +k.h, low: +k.l, close: +k.c, volume: +k.v };
         candles.push(candle); if (candles.length > 15000) candles.shift();
         computeIndicators();
