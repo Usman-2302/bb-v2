@@ -69,7 +69,7 @@ function detectRegime(candle, i) {
   const atrArr = atr(candles, 14);
   const priceAbove = candle.close > e200[i];
   const slope10 = (e200[i] - e200[Math.max(0, i - 10)]) / e200[Math.max(0, i - 10)];
-  const atrPct = atrArr[i] / candle.close * 100;
+  const atrPct = (atr14[i] || 0) / candle.close * 100;
   if (atrPct > 5) return 'CRISIS';
   if (slope10 > 0.0007 && priceAbove) return 'BULL';
   if (slope10 < -0.0007 && !priceAbove) return 'BEAR';
@@ -112,6 +112,25 @@ async function processCandle(candle, i) {
     console.log('[CANDLE] ' + new Date(candle.openTime).toISOString().slice(5,16) + ' i=' + i + ' O=' + candle.open.toFixed(0) + ' H=' + candle.high.toFixed(0) + ' L=' + candle.low.toFixed(0) + ' C=' + candle.close.toFixed(0) + ' V=' + candle.volume.toFixed(0) + ' rv=' + rv.toFixed(3) + ' rg=' + regime);
   }
 
+  // ═══ PENDING ORDER CHECK — verify limit entry filled ═══
+  if (pendingOrder) {
+    const po = pendingOrder;
+    if (i - po.idx >= 3) {
+      console.log('[ORDER] Timeout cancelling ' + po.side + ' limit @ $' + po.entry.toFixed(0));
+      await cancelOrder(po.orderId);
+      pendingOrder = null;
+    } else {
+      const filled = await checkOrderFilled(po.orderId);
+      if (filled) {
+        console.log('[ORDER] Filled: ' + po.side + ' @ $' + po.entry.toFixed(0));
+        await placeSLTP(po.side === 'LONG' ? 'BUY' : 'SELL', po.stop, po.tp, po.risk / po.stopDist);
+        openTrade = { side: po.side, entry: po.entry, stop: po.stop, tp: po.tp, risk: po.risk, idx: po.idx, regime: po.regime };
+        pendingOrder = null;
+        console.log('[🔥 ENTRY] LIVE ' + openTrade.side + ' @ $' + openTrade.entry.toFixed(0) + ' | Risk: $' + openTrade.risk.toFixed(2));
+      }
+    }
+  }
+
   if (openTrade) {
     const t = openTrade; let closed = false, pnl = 0, outcome = '';
     if (t.side === 'LONG') {
@@ -142,7 +161,7 @@ async function processCandle(candle, i) {
   }
 
   // Debug: we made it past RVOL check
-  if (Math.random() < 0.05) console.log('[CHECK] regime='+regime+' rv='+rv.toFixed(2)+' pools='+detectPools(regime==='BULL'?'LONG':'SHORT').length+' candle='+new Date(candle.openTime).toISOString().slice(5,16));
+  console.log('[CHECK-PASS] regime='+regime+' rv='+rv.toFixed(2)+' pools='+detectPools(regime==='BULL'?'LONG':'SHORT').length+' candle='+new Date(candle.openTime).toISOString().slice(5,16));
 
   if (regime === 'BULL') {
     const pools = detectPools('LONG');
@@ -319,7 +338,7 @@ async function main() {
       } catch (e) {}
     });
     ws.on('close', () => { console.log('[WS] Disconnected'); setTimeout(connectWS, 10000); });
-    ws.on('error', () => {});
+    ws.on('error', (e) => { console.error('[WS] Error:', e.message || e); });
   }
   connectWS();
   console.log('[REST] Polling every 30s...');
