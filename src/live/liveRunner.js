@@ -182,6 +182,8 @@ async function processCandle(candle, i) {
         if (order) {
           pendingOrder = { side: 'LONG', entry, stop, tp, risk: riskAmt, stopDist, idx: i, regime, orderId: order.orderId };
           console.log('[ORDER] Placed LONG limit @ $' + entry.toFixed(0) + ' | Order #' + order.orderId);
+        } else {
+          console.error('[ORDER] FAILED LONG @ $' + entry.toFixed(0) + ' — API returned null, trade lost');
         }
       } else {
         openTrade = { side: 'LONG', entry, stop, tp, risk: riskAmt, idx: i, regime };
@@ -209,6 +211,8 @@ async function processCandle(candle, i) {
         if (order) {
           pendingOrder = { side: 'SHORT', entry, stop, tp, risk: riskAmt, stopDist, idx: i, regime, orderId: order.orderId };
           console.log('[ORDER] Placed SHORT limit @ $' + entry.toFixed(0) + ' | Order #' + order.orderId);
+        } else {
+          console.error('[ORDER] FAILED SHORT @ $' + entry.toFixed(0) + ' — API returned null, trade lost');
         }
       } else {
         openTrade = { side: 'SHORT', entry, stop, tp, risk: riskAmt, idx: i, regime };
