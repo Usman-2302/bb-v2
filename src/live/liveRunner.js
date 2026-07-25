@@ -57,7 +57,15 @@ function sign(params) {
 async function binanceRequest(method, path, params = {}, signed = false) {
   if (signed) params = sign({ ...params, timestamp: Date.now(), recvWindow: 5000 });
   try {
-    const resp = await axios({ method, url: BASE_URL + path, params, headers: signed ? { 'X-MBX-APIKEY': API_KEY } : {}, timeout: 10000 });
+    const resp = await axios({ method, url: BASE_URL + path, params,
+      headers: signed ? { 'X-MBX-APIKEY': API_KEY } : {}, timeout: 10000,
+      transformResponse: [data => {
+        // Preserve large integers (orderId > MAX_SAFE_INTEGER) as strings
+        return JSON.parse(data, (key, value) =>
+          typeof value === 'number' && (value > Number.MAX_SAFE_INTEGER || value < Number.MIN_SAFE_INTEGER) ? String(value) : value
+        );
+      }]
+    });
     return resp.data;
   } catch (e) { console.error('[BINANCE]', e.response?.data || e.message); return null; }
 }
