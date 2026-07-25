@@ -3,7 +3,7 @@ require('dotenv').config();
 /**
  * BulletBrain v3.0 — Live Runner (LONG + SHORT)
  * BULL → LONG  |  BEAR → SHORT  |  RANGING → FLAT
- * Entry: MARKET order. SL: STOP_MARKET closePosition. TP: bot-managed MARKET exit.
+ * Usage: BB_SYMBOL=ethusdt BB_LIVE=false node src/live/liveRunner.js
  */
 
 const axios = require('axios');
@@ -17,39 +17,41 @@ const SECRET_KEY = process.env.BINANCE_SECRET_KEY || '';
 const BASE_URL = 'https://fapi.binance.com';
 const INITIAL_CAPITAL = parseFloat(process.env.BB_CAPITAL || '100');
 
-const SWEEP_RVOL_MIN = 0.5, STOP_ATR_MULT = 0.5, TP_R_MULT = 2.0;
-const RISK_PCT = 0.02, SKIP_RANGING = true;
-const FEE_RATE = 0.0004; // 0.04% taker fee per side
+const SWEEP_RVOL_MIN = 0.5, STOP_ATR_MULT = 0.5, TP_R_MULT = 2.0;  // 0.6→0.5: SMA20 temporarily elevated by spike candles
+const MAX_CONCURRENT = 1, RISK_PCT = 0.02, SKIP_RANGING = true;
 
 const { ema } = require('../indicators/ema');
 const { atr } = require('../indicators/atr');
 const { cvd: cvdFn } = require('../indicators/cvd');
 
+// Simple 20-candle rolling SMA RVOL (not time-normalized)
+// Time-normalized RVOL inflates baseline with crash day volume
 function simpleRvol(candles, period = 20) {
   const result = new Array(candles.length).fill(1.0);
   for (let i = period; i < candles.length; i++) {
     let sum = 0;
     for (let j = i - period; j < i; j++) sum += candles[j].volume;
-    result[i] = sum / period > 0 ? candles[i].volume / (sum / period) : 1.0;
+    const avg = sum / period;
+    result[i] = avg > 0 ? candles[i].volume / avg : 1.0;
   }
   return result;
 }
 
 const candles = [];
-let isScanning = false;
+let isScanning = false;  // true during warmup scan — skip real orders
 let atr14 = [], rvolVals = [], cvdVals = { delta: [], cumulative: [] };
 let lastRegime = 'RANGING';
 let equity = INITIAL_CAPITAL, maxEquity = equity;
 let openTrade = null;
+let pendingOrder = null;
 let trades = 0, wins = 0, losses = 0;
 let longTrades = 0, shortTrades = 0;
 let sweepsDetected = 0, ghostsBlocked = 0, rvolBlocked = 0, rangingSkipped = 0;
 
-// ── Sign & API ─────────────────────────────────────────────
 function sign(params) {
   const qs = Object.keys(params).sort().map(k => k + '=' + params[k]).join('&');
   params.signature = crypto.createHmac('sha256', SECRET_KEY).update(qs).digest('hex');
-  params._qs = qs + '&signature=' + params.signature;
+  params._qs = qs + '&signature=' + params.signature; // raw query for URL
   return params;
 }
 
@@ -59,18 +61,22 @@ async function binanceRequest(method, path, params = {}, signed = false) {
     const url = signed ? BASE_URL + path + '?' + params._qs : BASE_URL + path;
     const resp = await axios({ method, url, params: signed ? undefined : params,
       headers: signed ? { 'X-MBX-APIKEY': API_KEY } : {}, timeout: 10000,
-      transformResponse: [data => JSON.parse(data, (key, value) =>
-        typeof value === 'number' && (value > Number.MAX_SAFE_INTEGER || value < Number.MIN_SAFE_INTEGER) ? String(value) : value
-      )]
+      transformResponse: [data => {
+        // Preserve large integers (orderId > MAX_SAFE_INTEGER) as strings
+        return JSON.parse(data, (key, value) =>
+          typeof value === 'number' && (value > Number.MAX_SAFE_INTEGER || value < Number.MIN_SAFE_INTEGER) ? String(value) : value
+        );
+      }]
     });
     return resp.data;
   } catch (e) { console.error('[BINANCE]', e.response?.data || e.message); return null; }
 }
 
-// ── Regime & Pool Detection ─────────────────────────────────
 function detectRegime(candle, i) {
   if (i < 200) return 'RANGING';
-  const e200 = ema(candles.map(c => c.close), 200);
+  const closes = candles.map(c => c.close);
+  const e200 = ema(closes, 200);
+  const atrArr = atr(candles, 14);
   const priceAbove = candle.close > e200[i];
   const slope10 = (e200[i] - e200[Math.max(0, i - 10)]) / e200[Math.max(0, i - 10)];
   const atrPct = (atr14[i] || 0) / candle.close * 100;
@@ -105,64 +111,66 @@ function detectPools(type) {
   return pools;
 }
 
-// ═════════════════════════════════════════════════════════════
-// CANDLE PROCESSING
-// ═════════════════════════════════════════════════════════════
 async function processCandle(candle, i) {
   try {
   const regime = detectRegime(candle, i);
   if (regime !== lastRegime) { console.log('[REGIME] ' + lastRegime + ' → ' + regime + ' @ ' + new Date(candle.openTime).toISOString().slice(5,16)); lastRegime = regime; }
 
+  // Log every candle processed in live mode
   if (!isScanning) {
     const rv = rvolVals[i] || 0;
     console.log('[CANDLE] ' + new Date(candle.openTime).toISOString().slice(5,16) + ' i=' + i + ' O=' + candle.open.toFixed(0) + ' H=' + candle.high.toFixed(0) + ' L=' + candle.low.toFixed(0) + ' C=' + candle.close.toFixed(0) + ' V=' + candle.volume.toFixed(0) + ' rv=' + rv.toFixed(3) + ' rg=' + regime);
   }
 
-  // ═══ ACTIVE TRADE MANAGEMENT ═══
+  // ═══ PENDING ORDER CHECK — verify limit entry filled ═══
+  if (pendingOrder) {
+    const po = pendingOrder;
+    if (i - po.idx >= 3) {
+      console.log('[ORDER] Timeout cancelling ' + po.side + ' limit @ $' + po.entry.toFixed(0));
+      await cancelOrder(po.orderId);
+      pendingOrder = null;
+    } else {
+      const filled = await checkOrderFilled(po.orderId);
+      if (filled) {
+        console.log('[ORDER] Filled: ' + po.side + ' @ $' + po.entry.toFixed(0));
+        await placeSLTP(po.side === 'LONG' ? 'BUY' : 'SELL', po.stop, po.tp, po.risk / po.stopDist);
+        openTrade = { side: po.side, entry: po.entry, stop: po.stop, tp: po.tp, risk: po.risk, idx: po.idx, regime: po.regime };
+        pendingOrder = null;
+        console.log('[🔥 ENTRY] LIVE ' + openTrade.side + ' @ $' + openTrade.entry.toFixed(0) + ' | Risk: $' + openTrade.risk.toFixed(2));
+      }
+    }
+  }
+
   if (openTrade) {
     const t = openTrade; let closed = false, pnl = 0, outcome = '';
     if (t.side === 'LONG') {
       if (candle.low <= t.stop) { outcome = 'LOSS'; pnl = -t.risk; closed = true; }
-      else if (candle.high >= t.tp) {
-        outcome = 'WIN'; pnl = (t.tp - t.entry) * t.qty * (1 - FEE_RATE);
-        if (LIVE_MODE && !isScanning) await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'MARKET', quantity: t.qty.toFixed(3), reduceOnly: 'true' }, true);
-        closed = true;
-      }
+      else if (candle.high >= t.tp) { outcome = 'WIN'; pnl = t.risk * TP_R_MULT; closed = true; }
     } else {
       if (candle.high >= t.stop) { outcome = 'LOSS'; pnl = -t.risk; closed = true; }
-      else if (candle.low <= t.tp) {
-        outcome = 'WIN'; pnl = (t.entry - t.tp) * t.qty * (1 - FEE_RATE);
-        if (LIVE_MODE && !isScanning) await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'MARKET', quantity: t.qty.toFixed(3), reduceOnly: 'true' }, true);
-        closed = true;
-      }
+      else if (candle.low <= t.tp) { outcome = 'WIN'; pnl = t.risk * TP_R_MULT; closed = true; }
     }
-    if (i - t.idx > 50) {
-      outcome = 'TIME'; pnl = t.risk * 0.3; closed = true;
-      if (LIVE_MODE && !isScanning) {
-        const cs = t.side === 'LONG' ? 'SELL' : 'BUY';
-        await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: cs, type: 'MARKET', quantity: t.qty.toFixed(3), reduceOnly: 'true' }, true);
-      }
-    }
+    if (i - t.idx > 50) { outcome = 'TIME'; pnl = t.risk * 0.3; closed = true; }
     if (closed) {
       equity += pnl; if (equity > maxEquity) maxEquity = equity;
       trades++; if (outcome === 'WIN') wins++; else if (outcome === 'LOSS') losses++;
       if (t.side === 'LONG') longTrades++; else shortTrades++;
-      console.log('[TRADE] ' + t.side + ' ' + outcome + ' | PnL: $' + pnl.toFixed(2) + ' | Equity: $' + equity.toFixed(2) + ' | WR: ' + (trades>0?(wins/trades*100).toFixed(0):'0') + '%');
+      console.log('[TRADE] ' + t.side + ' ' + outcome + ' | PnL: $' + pnl.toFixed(2) + ' | Equity: $' + equity.toFixed(2) + ' | WR: ' + (trades > 0 ? (wins/trades*100).toFixed(0) : '0') + '%');
       openTrade = null;
     }
   }
-  if (openTrade) return;
+  if (openTrade || pendingOrder) return;
 
-  // ═══ NEW SIGNAL CHECK ═══
   if (SKIP_RANGING && (regime === 'RANGING' || regime === 'RANGING_ZOMBIE')) { rangingSkipped++; return; }
 
   const rv = rvolVals[i] || 0, cv = cvdVals.delta[i] || 0, pv = cvdVals.delta[i-1] || 0, av = atr14[i] || 0;
   if (rv < SWEEP_RVOL_MIN) {
-    if (regime !== 'RANGING' && i > 20) { let s=0; for(let j=i-20;j<i;j++) s+=candles[j].volume; console.log('[RVOL_DBG] i='+i+' vol='+candle.volume.toFixed(0)+' sma20='+(s/20).toFixed(0)+' rv='+rv.toFixed(3)); }
+    if (regime !== 'RANGING' && candles.length > 0 && i > 20) { let s=0; for(let j=i-20;j<i;j++) s+=candles[j].volume; console.log('[RVOL_DBG] i='+i+' vol='+candle.volume.toFixed(0)+' sma20='+(s/20).toFixed(0)+' rv='+rv.toFixed(3)); }
     if (rv > 0 && regime !== 'RANGING') console.log('[FILTER] RVOL= rv='+rv.toFixed(2)+' < '+SWEEP_RVOL_MIN+' regime='+regime+' candle='+new Date(candle.openTime).toISOString().slice(5,16));
     return;
   }
 
+  // Debug: we made it past RVOL check
   console.log('[CHECK-PASS] regime='+regime+' rv='+rv.toFixed(2)+' pools='+detectPools(regime==='BULL'?'LONG':'SHORT').length+' candle='+new Date(candle.openTime).toISOString().slice(5,16));
 
   let found = false;
@@ -171,63 +179,68 @@ async function processCandle(candle, i) {
     for (const pool of pools) {
       if (pool.formed > i || pool.expires < i) continue;
       if (candle.low >= pool.level || candle.close <= pool.level) continue;
-      found = true; sweepsDetected++;
-      if ((cv - pv) <= 0) { ghostsBlocked++; if(!isScanning) console.log('[CVD] Ghost blocked LONG pool=$' + pool.level); continue; }
-      const stopDist = av * STOP_ATR_MULT;
-      const stop = pool.level - stopDist, tp = pool.level + stopDist * TP_R_MULT;
-      if (stopDist <= 0 || pool.level <= stop) { rvolBlocked++; continue; }
-      const riskAmt = equity * RISK_PCT, fee = riskAmt * FEE_RATE;
-      if (!LIVE_MODE || isScanning) {
-        openTrade = { side:'LONG', entry:pool.level, stop, tp, risk:riskAmt+fee, qty:riskAmt/stopDist, idx:i, regime };
-        console.log('[🔥 ENTRY] ' + (isScanning?'SCAN':'PAPER') + ' LONG @ $' + pool.level.toFixed(0) + ' | Risk: $' + riskAmt.toFixed(2));
-      } else {
-        const maxQty = equity * 0.8 * 20 / candle.close;
+      found = true;
+      sweepsDetected++;
+      if ((cv - pv) <= 0) { ghostsBlocked++; if(!isScanning) console.log("[CVD] Ghost blocked " + regime + " pool=$" + pool.level); continue; }
+      const entry = pool.level, stopDist = av * STOP_ATR_MULT;
+      const stop = entry - stopDist, tp = entry + stopDist * TP_R_MULT;
+      if (stopDist <= 0 || entry <= stop) { rvolBlocked++; console.log('[BLOCK] LONG entry failed: entry='+entry.toFixed(0)+' stop='+stop.toFixed(0)+' av='+av.toFixed(2)+' stopDist='+stopDist.toFixed(2)); continue; }
+      const riskAmt = equity * RISK_PCT;
+      if (LIVE_MODE && !isScanning) {
+        const maxQty = equity * 0.8 * 20 / entry; // 80% of max position at 20x
         const qty = Math.min(riskAmt / stopDist, maxQty);
-        const order = await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'MARKET', quantity: qty.toFixed(3) }, true);
-        if (!order) { console.error('[ORDER] FAILED LONG MARKET entry'); continue; }
-        console.log('[ORDER] MARKET BUY ' + qty.toFixed(3) + ' ETH');
-        await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'STOP_MARKET', stopPrice: stop.toFixed(2), closePosition: 'true' }, true);
-        console.log('[SL] STOP_MARKET @ $' + stop.toFixed(0));
-        openTrade = { side:'LONG', entry:pool.level, stop, tp, risk:riskAmt+fee, qty, idx:i, regime };
-        console.log('[🔥 ENTRY] LIVE LONG | qty=' + qty.toFixed(3) + ' | SL=$' + stop.toFixed(0) + ' | TP=$' + tp.toFixed(0));
+        const order = await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'LIMIT', price: entry.toFixed(2), quantity: qty.toFixed(3), timeInForce: 'GTC' }, true);
+        if (order) {
+          pendingOrder = { side: 'LONG', entry, stop, tp, risk: riskAmt, stopDist, idx: i, regime, orderId: order.orderId };
+          console.log('[ORDER] Placed LONG limit @ $' + entry.toFixed(0) + ' | Order #' + order.orderId);
+        } else {
+          console.error('[ORDER] FAILED LONG @ $' + entry.toFixed(0) + ' — API returned null, trade lost');
+        }
+      } else {
+        openTrade = { side: 'LONG', entry, stop, tp, risk: riskAmt, idx: i, regime };
+        console.log('[🔥 ENTRY] ' + (isScanning ? 'SCAN' : 'PAPER') + ' LONG @ $' + entry.toFixed(0) + ' | Risk: $' + riskAmt.toFixed(2) + ' | ' + regime);
       }
       break;
     }
-    if (!found && pools.length > 0 && !isScanning) console.log('[BLOCK] No pool sweep LONG candle H='+candle.high.toFixed(0)+' L='+candle.low.toFixed(0)+' C='+candle.close.toFixed(0)+' pools='+pools.length+' active='+pools.filter(p=>p.formed<=i&&p.expires>=i).length);
+    if (!found && pools.length > 0) {
+      console.log('[BLOCK] No pool sweep regime='+regime+' candle H='+candle.high.toFixed(0)+' L='+candle.low.toFixed(0)+' C='+candle.close.toFixed(0)+' pools='+pools.length+' nearest='+(pools[0]?.level||'none')+' expired='+pools.filter(p=>p.expires<i).length+' future='+pools.filter(p=>p.formed>i).length);
+    }
   } else if (regime === 'BEAR') {
     const pools = detectPools('SHORT');
     for (const pool of pools) {
       if (pool.formed > i || pool.expires < i) continue;
       if (candle.high <= pool.level || candle.close >= pool.level) continue;
-      found = true; sweepsDetected++;
-      if ((cv - pv) >= 0) { ghostsBlocked++; if(!isScanning) console.log('[CVD] Ghost blocked SHORT pool=$' + pool.level); continue; }
-      const stopDist = av * STOP_ATR_MULT;
-      const stop = pool.level + stopDist, tp = pool.level - stopDist * TP_R_MULT;
-      if (stopDist <= 0 || pool.level >= stop) { rvolBlocked++; continue; }
-      const riskAmt = equity * RISK_PCT, fee = riskAmt * FEE_RATE;
-      if (!LIVE_MODE || isScanning) {
-        openTrade = { side:'SHORT', entry:pool.level, stop, tp, risk:riskAmt+fee, qty:riskAmt/stopDist, idx:i, regime };
-        console.log('[🔥 ENTRY] ' + (isScanning?'SCAN':'PAPER') + ' SHORT @ $' + pool.level.toFixed(0) + ' | Risk: $' + riskAmt.toFixed(2));
-      } else {
-        const maxQty = equity * 0.8 * 20 / candle.close;
+      sweepsDetected++;
+      if ((cv - pv) >= 0) { ghostsBlocked++; if(!isScanning) console.log("[CVD] Ghost blocked " + regime + " pool=$" + pool.level); continue; }
+      const entry = pool.level, stopDist = av * STOP_ATR_MULT;
+      const stop = entry + stopDist, tp = entry - stopDist * TP_R_MULT;
+      if (stopDist <= 0 || entry >= stop) { rvolBlocked++; console.log('[BLOCK] SHORT entry failed: entry='+entry.toFixed(0)+' stop='+stop.toFixed(0)+' av='+av.toFixed(2)); continue; }
+      const riskAmt = equity * RISK_PCT;
+      if (LIVE_MODE && !isScanning) {
+        const maxQty = equity * 0.8 * 20 / entry; // 80% of max position at 20x
         const qty = Math.min(riskAmt / stopDist, maxQty);
-        const order = await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'MARKET', quantity: qty.toFixed(3) }, true);
-        if (!order) { console.error('[ORDER] FAILED SHORT MARKET entry'); continue; }
-        console.log('[ORDER] MARKET SELL ' + qty.toFixed(3) + ' ETH');
-        await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'STOP_MARKET', stopPrice: stop.toFixed(2), closePosition: 'true' }, true);
-        console.log('[SL] STOP_MARKET @ $' + stop.toFixed(0));
-        openTrade = { side:'SHORT', entry:pool.level, stop, tp, risk:riskAmt+fee, qty, idx:i, regime };
-        console.log('[🔥 ENTRY] LIVE SHORT | qty=' + qty.toFixed(3) + ' | SL=$' + stop.toFixed(0) + ' | TP=$' + tp.toFixed(0));
+        const order = await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'LIMIT', price: entry.toFixed(2), quantity: qty.toFixed(3), timeInForce: 'GTC' }, true);
+        if (order) {
+          pendingOrder = { side: 'SHORT', entry, stop, tp, risk: riskAmt, stopDist, idx: i, regime, orderId: order.orderId };
+          console.log('[ORDER] Placed SHORT limit @ $' + entry.toFixed(0) + ' | Order #' + order.orderId);
+        } else {
+          console.error('[ORDER] FAILED SHORT @ $' + entry.toFixed(0) + ' — API returned null, trade lost');
+        }
+      } else {
+        openTrade = { side: 'SHORT', entry, stop, tp, risk: riskAmt, idx: i, regime };
+        console.log('[🔥 ENTRY] ' + (isScanning ? 'SCAN' : 'PAPER') + ' SHORT @ $' + entry.toFixed(0) + ' | Risk: $' + riskAmt.toFixed(2) + ' | ' + regime);
       }
       break;
     }
-    if (!found && !isScanning) console.log('[BLOCK] No pool sweep SHORT candle H='+candle.high.toFixed(0)+' L='+candle.low.toFixed(0)+' C='+candle.close.toFixed(0)+' pools='+pools.length+' active='+pools.filter(p=>p.formed<=i&&p.expires>=i).length);
+    if (!found && !isScanning) console.log('[BLOCK] No pool sweep regime='+regime+' candle H='+candle.high.toFixed(0)+' L='+candle.low.toFixed(0)+' C='+candle.close.toFixed(0)+' pools='+pools.length+' active='+pools.filter(p=>p.formed<=i&&p.expires>=i).length);
   }
   } catch (e) { console.error('[PROCESS_CANDLE] Error:', e.message, '| i=' + i); }
 }
 
 function umpireReport() {
+  const dd = maxEquity > equity ? ((maxEquity - equity) / maxEquity * 100) : 0;
   const wr = trades > 0 ? (wins / trades * 100) : 0;
+  console.log('');
   console.log('════ ════ UMPIRE @ ' + new Date().toISOString() + ' ════ ═════');
   console.log('  Coin: ' + SYMBOL.toUpperCase() + ' | Regime: ' + lastRegime + ' | Mode: ' + (LIVE_MODE ? '🔴 LIVE' : '📄 PAPER'));
   console.log('  Equity: $' + equity.toFixed(2) + ' | Trades: ' + trades + ' (L:' + longTrades + '/S:' + shortTrades + ') | WR: ' + wr.toFixed(0) + '% | PnL: $' + (equity - INITIAL_CAPITAL).toFixed(2));
@@ -244,10 +257,10 @@ function computeIndicators() {
 
 async function main() {
   console.log('═══════════════════════════════════════════════');
-  console.log('  BulletBrain v3.0 — Live Runner');
+  console.log('  BulletBrain v3.0 — Live Runner (LONG+SHORT)');
   console.log('  Coin: ' + SYMBOL.toUpperCase() + ' | Mode: ' + (LIVE_MODE ? '🔴 LIVE' : '📄 PAPER'));
-  console.log('  MARKET entry | SL: STOP_MARKET | TP: MARKET exit | Fee: ' + (FEE_RATE*100).toFixed(2) + '%');
-  console.log('  RVOL≥' + SWEEP_RVOL_MIN + ' | ' + TP_R_MULT + 'R | ' + STOP_ATR_MULT + ' ATR');
+  console.log('  BULL→LONG | BEAR→SHORT | RANGING→FLAT');
+  console.log('  RVOL≥' + SWEEP_RVOL_MIN + ' | ' + TP_R_MULT + 'R Target | ' + STOP_ATR_MULT + ' ATR');
   console.log('═══════════════════════════════════════════════');
 
   console.log('Backfilling 1500 candles...');
@@ -263,22 +276,42 @@ async function main() {
   console.log('  Warmup ready. Scanning for diagnostic trades...');
 
   isScanning = true;
-  for (let si = 300; si < candles.length; si++) { await processCandle(candles[si], si); }
+  const scanStart = 300;
+  for (let si = scanStart; si < candles.length; si++) {
+    await processCandle(candles[si], si);
+  }
   isScanning = false;
   console.log('  Scan found: ' + trades + ' trades (diagnostic only)');
 
-  equity = INITIAL_CAPITAL; maxEquity = equity;
+  // Reset to real capital — warmup scan was diagnostic
+  equity = INITIAL_CAPITAL;
+  maxEquity = equity;
   trades = 0; wins = 0; losses = 0;
   longTrades = 0; shortTrades = 0;
   sweepsDetected = 0; ghostsBlocked = 0; rvolBlocked = 0; rangingSkipped = 0;
   openTrade = null;
+  pendingOrder = null;
 
+  // ── RVOL BASELINE RESET ──────────────────────────────────────
+  // The warmup scan's candle buffer contains 1500 historical candles
+  // including volatile crash days with 200K-500K volume per candle.
+  // simpleRvol's 20-candle SMA carries those into live, making normal
+  // live volume (20K-50K) score RVOL 0.3-0.5 and get filtered out.
+  //
+  // Fix: trim the buffer to the last 500 candles after warmup.
+  //   500 = enough for: EMA200 (needs 200) + pool detection history
+  //   (pools form within 80 candles, expire after 500) + SMA20 baseline
+  //   reset to recent 20 candles only (no crash-day volume contamination).
+  //
+  // Result: simpleRvol SMA20 now uses only the most recent 20 candles,
+  // which reflect current normal volume levels, not historical spikes.
   const KEEP_CANDLES = 500;
   if (candles.length > KEEP_CANDLES) {
     const removed = candles.splice(0, candles.length - KEEP_CANDLES).length;
-    console.log('  RVOL baseline reset: trimmed ' + removed + ' candles, keeping ' + KEEP_CANDLES);
+    console.log('  RVOL baseline reset: trimmed ' + removed + ' warmup candles, keeping last ' + KEEP_CANDLES);
   }
-  computeIndicators();
+  computeIndicators(); // recompute with fresh baseline
+
   console.log('  State reset. Starting LIVE with $' + equity.toFixed(2));
 
   let lastProcessed = candles[candles.length - 1]?.openTime || 0;
@@ -289,7 +322,7 @@ async function main() {
       });
       for (const k of resp.data) {
         const kTime = new Date(k[0]).toISOString().slice(5,16);
-        if (k[0] <= lastProcessed) { if (Date.now() % 120000 < 30000) console.log('[REST] Skip old ' + kTime); continue; }
+        if (k[0] <= lastProcessed) { if (Date.now() % 120000 < 30000) console.log('[REST] Skip old ' + kTime + ' (lp=' + new Date(lastProcessed).toISOString().slice(5,16) + ')'); continue; }
         if (k[6] > Date.now()) { console.log('[REST] Skip unclosed ' + kTime); continue; }
         console.log('[REST] Processing ' + kTime + ' vol=' + (+k[5]).toFixed(0));
         const candle = { openTime: k[0], closeTime: k[6], open: +k[1], high: +k[2], low: +k[3], close: +k[4], volume: +k[5] };
@@ -329,3 +362,28 @@ async function main() {
 }
 
 main().catch(e => { console.error('FATAL:', e.message); process.exit(1); });
+// ── Order Management ────────────────────────────────────────────
+async function checkOrderFilled(orderId) {
+  if (!LIVE_MODE) return true;
+  try {
+    const ts = Date.now();
+    const sig = crypto.createHmac('sha256', SECRET_KEY).update('orderId=' + orderId + '&symbol=' + SYMBOL.toUpperCase() + '&timestamp=' + ts).digest('hex');
+    const resp = await axios({ url: BASE_URL + '/fapi/v1/order?orderId=' + orderId + '&symbol=' + SYMBOL.toUpperCase() + '&timestamp=' + ts + '&signature=' + sig, headers: { 'X-MBX-APIKEY': API_KEY }, timeout: 5000 });
+    return resp.data.status === 'FILLED';
+  } catch (e) { return false; }
+}
+async function cancelOrder(orderId) {
+  if (!LIVE_MODE) return;
+  try {
+    const ts = Date.now();
+    const sig = crypto.createHmac('sha256', SECRET_KEY).update('orderId=' + orderId + '&symbol=' + SYMBOL.toUpperCase() + '&timestamp=' + ts).digest('hex');
+    await axios({ method: 'DELETE', url: BASE_URL + '/fapi/v1/order?orderId=' + orderId + '&symbol=' + SYMBOL.toUpperCase() + '&timestamp=' + ts + '&signature=' + sig, headers: { 'X-MBX-APIKEY': API_KEY }, timeout: 5000 });
+    console.log('[ORDER] Cancelled unfilled #' + orderId);
+  } catch (e) {}
+}
+async function placeSLTP(side, stop, tp, qty) {
+  if (!LIVE_MODE) return;
+  const stopSide = side === 'BUY' ? 'SELL' : 'BUY';
+  await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: stopSide, type: 'STOP_MARKET', stopPrice: stop.toFixed(2), closePosition: 'true' }, true);
+  await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: stopSide, type: 'TAKE_PROFIT_MARKET', stopPrice: tp.toFixed(2), closePosition: 'true' }, true);
+}
