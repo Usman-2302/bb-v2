@@ -51,13 +51,15 @@ let sweepsDetected = 0, ghostsBlocked = 0, rvolBlocked = 0, rangingSkipped = 0;
 function sign(params) {
   const qs = Object.keys(params).sort().map(k => k + '=' + params[k]).join('&');
   params.signature = crypto.createHmac('sha256', SECRET_KEY).update(qs).digest('hex');
+  params._qs = qs + '&signature=' + params.signature; // raw query for URL
   return params;
 }
 
 async function binanceRequest(method, path, params = {}, signed = false) {
   if (signed) params = sign({ ...params, timestamp: Date.now(), recvWindow: 5000 });
   try {
-    const resp = await axios({ method, url: BASE_URL + path, params,
+    const url = signed ? BASE_URL + path + '?' + params._qs : BASE_URL + path;
+    const resp = await axios({ method, url, params: signed ? undefined : params,
       headers: signed ? { 'X-MBX-APIKEY': API_KEY } : {}, timeout: 10000,
       transformResponse: [data => {
         // Preserve large integers (orderId > MAX_SAFE_INTEGER) as strings
@@ -171,9 +173,9 @@ async function processCandle(candle, i) {
   // Debug: we made it past RVOL check
   console.log('[CHECK-PASS] regime='+regime+' rv='+rv.toFixed(2)+' pools='+detectPools(regime==='BULL'?'LONG':'SHORT').length+' candle='+new Date(candle.openTime).toISOString().slice(5,16));
 
+  let found = false;
   if (regime === 'BULL') {
     const pools = detectPools('LONG');
-    let found = false;
     for (const pool of pools) {
       if (pool.formed > i || pool.expires < i) continue;
       if (candle.low >= pool.level || candle.close <= pool.level) continue;
