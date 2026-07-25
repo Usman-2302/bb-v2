@@ -216,6 +216,7 @@ async function processCandle(candle, i) {
       }
       break;
     }
+    if (!found && !isScanning) console.log('[BLOCK] No pool sweep regime='+regime+' candle H='+candle.high.toFixed(0)+' L='+candle.low.toFixed(0)+' C='+candle.close.toFixed(0)+' pools='+pools.length+' active='+pools.filter(p=>p.formed<=i&&p.expires>=i).length);
   }
   } catch (e) { console.error('[PROCESS_CANDLE] Error:', e.message, '| i=' + i); }
 }
