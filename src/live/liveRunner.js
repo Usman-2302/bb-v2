@@ -179,7 +179,7 @@ async function processCandle(candle, i) {
       if (candle.low >= pool.level || candle.close <= pool.level) continue;
       found = true;
       sweepsDetected++;
-      if ((cv - pv) <= 0) { ghostsBlocked++; continue; }
+      if ((cv - pv) <= 0) { ghostsBlocked++; if(!isScanning) console.log("[CVD] Ghost blocked " + regime + " pool=$" + pool.level); continue; }
       const entry = pool.level, stopDist = av * STOP_ATR_MULT;
       const stop = entry - stopDist, tp = entry + stopDist * TP_R_MULT;
       if (stopDist <= 0 || entry <= stop) { rvolBlocked++; console.log('[BLOCK] LONG entry failed: entry='+entry.toFixed(0)+' stop='+stop.toFixed(0)+' av='+av.toFixed(2)+' stopDist='+stopDist.toFixed(2)); continue; }
@@ -208,7 +208,7 @@ async function processCandle(candle, i) {
       if (pool.formed > i || pool.expires < i) continue;
       if (candle.high <= pool.level || candle.close >= pool.level) continue;
       sweepsDetected++;
-      if ((cv - pv) >= 0) { ghostsBlocked++; continue; }
+      if ((cv - pv) >= 0) { ghostsBlocked++; if(!isScanning) console.log("[CVD] Ghost blocked " + regime + " pool=$" + pool.level); continue; }
       const entry = pool.level, stopDist = av * STOP_ATR_MULT;
       const stop = entry + stopDist, tp = entry - stopDist * TP_R_MULT;
       if (stopDist <= 0 || entry >= stop) { rvolBlocked++; console.log('[BLOCK] SHORT entry failed: entry='+entry.toFixed(0)+' stop='+stop.toFixed(0)+' av='+av.toFixed(2)); continue; }
