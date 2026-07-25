@@ -187,7 +187,8 @@ async function processCandle(candle, i) {
       if (stopDist <= 0 || entry <= stop) { rvolBlocked++; console.log('[BLOCK] LONG entry failed: entry='+entry.toFixed(0)+' stop='+stop.toFixed(0)+' av='+av.toFixed(2)+' stopDist='+stopDist.toFixed(2)); continue; }
       const riskAmt = equity * RISK_PCT;
       if (LIVE_MODE && !isScanning) {
-        const qty = riskAmt / stopDist;
+        const maxQty = equity * 0.8 * 20 / entry; // 80% of max position at 20x
+        const qty = Math.min(riskAmt / stopDist, maxQty);
         const order = await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'LIMIT', price: entry.toFixed(2), quantity: qty.toFixed(3), timeInForce: 'GTC' }, true);
         if (order) {
           pendingOrder = { side: 'LONG', entry, stop, tp, risk: riskAmt, stopDist, idx: i, regime, orderId: order.orderId };
@@ -216,7 +217,8 @@ async function processCandle(candle, i) {
       if (stopDist <= 0 || entry >= stop) { rvolBlocked++; console.log('[BLOCK] SHORT entry failed: entry='+entry.toFixed(0)+' stop='+stop.toFixed(0)+' av='+av.toFixed(2)); continue; }
       const riskAmt = equity * RISK_PCT;
       if (LIVE_MODE && !isScanning) {
-        const qty = riskAmt / stopDist;
+        const maxQty = equity * 0.8 * 20 / entry; // 80% of max position at 20x
+        const qty = Math.min(riskAmt / stopDist, maxQty);
         const order = await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'LIMIT', price: entry.toFixed(2), quantity: qty.toFixed(3), timeInForce: 'GTC' }, true);
         if (order) {
           pendingOrder = { side: 'SHORT', entry, stop, tp, risk: riskAmt, stopDist, idx: i, regime, orderId: order.orderId };
