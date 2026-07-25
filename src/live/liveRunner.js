@@ -178,7 +178,7 @@ async function processCandle(candle, i) {
       const riskAmt = equity * RISK_PCT;
       if (LIVE_MODE && !isScanning) {
         const qty = riskAmt / stopDist;
-        const order = await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'LIMIT', price: entry.toFixed(2), quantity: qty.toFixed(4), timeInForce: 'GTC' }, true);
+        const order = await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'LIMIT', price: entry.toFixed(2), quantity: qty.toFixed(3), timeInForce: 'GTC' }, true);
         if (order) {
           pendingOrder = { side: 'LONG', entry, stop, tp, risk: riskAmt, stopDist, idx: i, regime, orderId: order.orderId };
           console.log('[ORDER] Placed LONG limit @ $' + entry.toFixed(0) + ' | Order #' + order.orderId);
@@ -205,7 +205,7 @@ async function processCandle(candle, i) {
       const riskAmt = equity * RISK_PCT;
       if (LIVE_MODE && !isScanning) {
         const qty = riskAmt / stopDist;
-        const order = await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'LIMIT', price: entry.toFixed(2), quantity: qty.toFixed(4), timeInForce: 'GTC' }, true);
+        const order = await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'LIMIT', price: entry.toFixed(2), quantity: qty.toFixed(3), timeInForce: 'GTC' }, true);
         if (order) {
           pendingOrder = { side: 'SHORT', entry, stop, tp, risk: riskAmt, stopDist, idx: i, regime, orderId: order.orderId };
           console.log('[ORDER] Placed SHORT limit @ $' + entry.toFixed(0) + ' | Order #' + order.orderId);
