@@ -119,35 +119,48 @@ async function processCandle(candle, i) {
   }
 
   // ═══ ACTIVE TRADE MANAGEMENT ═══
+  // SL and TP are placed as Binance orders (STOP_MARKET + TAKE_PROFIT_MARKET)
+  // They auto-execute at exact price — the bot just monitors if position still open
   if (openTrade) {
-    const t = openTrade; let closed = false, pnl = 0, outcome = '';
-    if (t.side === 'LONG') {
-      if (candle.low <= t.stop) { outcome = 'LOSS'; pnl = -t.risk; closed = true; }
-      else if (candle.high >= t.tp) {
-        outcome = 'WIN'; pnl = (t.tp - t.entry) * t.qty * (1 - FEE_RATE);
-        if (LIVE_MODE && !isScanning) await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'MARKET', quantity: t.qty.toFixed(3), reduceOnly: 'true' }, true);
-        closed = true;
-      }
-    } else {
-      if (candle.high >= t.stop) { outcome = 'LOSS'; pnl = -t.risk; closed = true; }
-      else if (candle.low <= t.tp) {
-        outcome = 'WIN'; pnl = (t.entry - t.tp) * t.qty * (1 - FEE_RATE);
-        if (LIVE_MODE && !isScanning) await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'MARKET', quantity: t.qty.toFixed(3), reduceOnly: 'true' }, true);
-        closed = true;
-      }
+    const t = openTrade;
+    // Check if position still exists on Binance
+    let positionClosed = true;
+    if (LIVE_MODE && !isScanning) {
+      try {
+        const positions = await binanceRequest('GET', '/fapi/v2/positionRisk', { symbol: SYMBOL.toUpperCase() }, true);
+        const pos = Array.isArray(positions) ? positions.find(p => p.symbol === SYMBOL.toUpperCase()) : null;
+        if (pos && Math.abs(+pos.positionAmt) > 0) {
+          positionClosed = false; // Still open
+        }
+      } catch (e) { /* keep monitoring */ }
     }
-    if (i - t.idx > 50) {
-      outcome = 'TIME'; pnl = t.risk * 0.3; closed = true;
+    
+    if (positionClosed || i - t.idx > 50) {
+      // Position closed by SL or TP → read actual PnL from Binance balance
+      let outcome = 'CLOSED', pnl = 0;
       if (LIVE_MODE && !isScanning) {
-        const cs = t.side === 'LONG' ? 'SELL' : 'BUY';
-        await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: cs, type: 'MARKET', quantity: t.qty.toFixed(3), reduceOnly: 'true' }, true);
+        try {
+          const acc = await binanceRequest('GET', '/fapi/v2/account', {}, true);
+          if (acc) {
+            const newBalance = +acc.totalWalletBalance;
+            pnl = newBalance - t.balanceBefore;
+            outcome = pnl >= 0 ? 'WIN' : 'LOSS';
+            equity = newBalance; // Use real Binance balance
+          }
+        } catch (e) { pnl = -t.risk; outcome = 'LOSS'; }
+      } else {
+        // Paper mode: simulated
+        const candleReachedTP = t.side === 'LONG' ? candle.high >= t.tp : candle.low <= t.tp;
+        const candleHitSL = t.side === 'LONG' ? candle.low <= t.stop : candle.high >= t.stop;
+        if (candleReachedTP) { outcome = 'WIN'; pnl = t.risk * 1.8; }
+        else if (candleHitSL) { outcome = 'LOSS'; pnl = -t.risk; }
+        else { outcome = 'TIME'; pnl = t.risk * 0.3; }
+        equity += pnl;
       }
-    }
-    if (closed) {
-      equity += pnl; if (equity > maxEquity) maxEquity = equity;
+      if (equity > maxEquity) maxEquity = equity;
       trades++; if (outcome === 'WIN') wins++; else if (outcome === 'LOSS') losses++;
       if (t.side === 'LONG') longTrades++; else shortTrades++;
-      console.log('[TRADE] ' + t.side + ' ' + outcome + ' | PnL: $' + pnl.toFixed(2) + ' | Equity: $' + equity.toFixed(2) + ' | WR: ' + (trades>0?(wins/trades*100).toFixed(0):'0') + '%');
+      console.log('[TRADE] ' + t.side + ' ' + outcome + ' | PnL: $' + pnl.toFixed(2) + ' | Balance: $' + equity.toFixed(2) + ' | WR: ' + (trades>0?(wins/trades*100).toFixed(0):'0') + '%');
       openTrade = null;
     }
   }
@@ -186,9 +199,15 @@ async function processCandle(candle, i) {
         const order = await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'MARKET', quantity: qty.toFixed(3) }, true);
         if (!order) { console.error('[ORDER] FAILED LONG MARKET entry'); continue; }
         console.log('[ORDER] MARKET BUY ' + qty.toFixed(3) + ' ETH');
+        // Place BOTH SL and TP on Binance — they auto-execute at exact price
         await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'STOP_MARKET', stopPrice: stop.toFixed(2), closePosition: 'true' }, true);
         console.log('[SL] STOP_MARKET @ $' + stop.toFixed(0));
-        openTrade = { side:'LONG', entry:pool.level, stop, tp, risk:riskAmt+fee, qty, idx:i, regime };
+        await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'TAKE_PROFIT_MARKET', stopPrice: tp.toFixed(2), closePosition: 'true' }, true);
+        console.log('[TP] TAKE_PROFIT_MARKET @ $' + tp.toFixed(0));
+        // Get actual Binance balance for PnL tracking
+        const balBefore = await binanceRequest('GET', '/fapi/v2/account', {}, true);
+        const balanceBefore = balBefore ? +balBefore.totalWalletBalance : equity;
+        openTrade = { side:'LONG', entry:pool.level, stop, tp, risk:riskAmt+fee, qty, idx:i, regime, balanceBefore };
         console.log('[🔥 ENTRY] LIVE LONG | qty=' + qty.toFixed(3) + ' | SL=$' + stop.toFixed(0) + ' | TP=$' + tp.toFixed(0));
       }
       break;
@@ -216,7 +235,11 @@ async function processCandle(candle, i) {
         console.log('[ORDER] MARKET SELL ' + qty.toFixed(3) + ' ETH');
         await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'STOP_MARKET', stopPrice: stop.toFixed(2), closePosition: 'true' }, true);
         console.log('[SL] STOP_MARKET @ $' + stop.toFixed(0));
-        openTrade = { side:'SHORT', entry:pool.level, stop, tp, risk:riskAmt+fee, qty, idx:i, regime };
+        await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'TAKE_PROFIT_MARKET', stopPrice: tp.toFixed(2), closePosition: 'true' }, true);
+        console.log('[TP] TAKE_PROFIT_MARKET @ $' + tp.toFixed(0));
+        const balBefore = await binanceRequest('GET', '/fapi/v2/account', {}, true);
+        const balanceBefore = balBefore ? +balBefore.totalWalletBalance : equity;
+        openTrade = { side:'SHORT', entry:pool.level, stop, tp, risk:riskAmt+fee, qty, idx:i, regime, balanceBefore };
         console.log('[🔥 ENTRY] LIVE SHORT | qty=' + qty.toFixed(3) + ' | SL=$' + stop.toFixed(0) + ' | TP=$' + tp.toFixed(0));
       }
       break;
