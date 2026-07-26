@@ -17,7 +17,7 @@ const SECRET_KEY = process.env.BINANCE_SECRET_KEY || '';
 const BASE_URL = 'https://fapi.binance.com';
 const INITIAL_CAPITAL = parseFloat(process.env.BB_CAPITAL || '100');
 
-const SWEEP_RVOL_MIN = 0.5, STOP_ATR_MULT = 0.5, TP_R_MULT = 2.0;
+const SWEEP_RVOL_MIN = 0.3, STOP_ATR_MULT = 0.3, TP_R_MULT = 2.5;  // Grid-optimized: tighter stop, bigger reward
 const RISK_PCT = 0.02, SKIP_RANGING = true;
 const FEE_RATE = 0.0004; // 0.04% taker fee per side
 
@@ -75,8 +75,8 @@ function detectRegime(candle, i) {
   const slope10 = (e200[i] - e200[Math.max(0, i - 10)]) / e200[Math.max(0, i - 10)];
   const atrPct = (atr14[i] || 0) / candle.close * 100;
   if (atrPct > 5) return 'CRISIS';
-  if (slope10 > 0.0007 && priceAbove) return 'BULL';
-  if (slope10 < -0.0007 && !priceAbove) return 'BEAR';
+  if (slope10 > 0.0005 && priceAbove) return 'BULL';
+  if (slope10 < -0.0005 && !priceAbove) return 'BEAR';
   return 'RANGING';
 }
 
