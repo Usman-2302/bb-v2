@@ -119,7 +119,7 @@ async function processCandle(candle, i) {
   }
 
   // ═══ ACTIVE TRADE MANAGEMENT ═══
-  // SL and TP are placed as Binance orders (STOP_MARKET + TAKE_PROFIT_MARKET)
+  // SL and TP are placed as Binance orders (STOP_MARKET + LIMIT reduceOnly TP)
   // They auto-execute at exact price — the bot just monitors if position still open
   if (openTrade) {
     const t = openTrade;
@@ -202,8 +202,8 @@ async function processCandle(candle, i) {
         // Place BOTH SL and TP on Binance — they auto-execute at exact price
         await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'STOP_MARKET', stopPrice: stop.toFixed(2), closePosition: 'true' }, true);
         console.log('[SL] STOP_MARKET @ $' + stop.toFixed(0));
-        await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'TAKE_PROFIT_MARKET', stopPrice: tp.toFixed(2), closePosition: 'true' }, true);
-        console.log('[TP] TAKE_PROFIT_MARKET @ $' + tp.toFixed(0));
+        await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'LIMIT', price: tp.toFixed(2), timeInForce: 'GTC', reduceOnly: 'true' }, true);
+        console.log('[TP] LIMIT TP @ $' + tp.toFixed(0));
         // Get actual Binance balance for PnL tracking
         const balBefore = await binanceRequest('GET', '/fapi/v2/account', {}, true);
         const balanceBefore = balBefore ? +balBefore.totalWalletBalance : equity;
@@ -235,8 +235,8 @@ async function processCandle(candle, i) {
         console.log('[ORDER] MARKET SELL ' + qty.toFixed(3) + ' ETH');
         await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'STOP_MARKET', stopPrice: stop.toFixed(2), closePosition: 'true' }, true);
         console.log('[SL] STOP_MARKET @ $' + stop.toFixed(0));
-        await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'TAKE_PROFIT_MARKET', stopPrice: tp.toFixed(2), closePosition: 'true' }, true);
-        console.log('[TP] TAKE_PROFIT_MARKET @ $' + tp.toFixed(0));
+        await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'LIMIT', price: tp.toFixed(2), timeInForce: 'GTC', reduceOnly: 'true' }, true);
+        console.log('[TP] LIMIT TP @ $' + tp.toFixed(0));
         const balBefore = await binanceRequest('GET', '/fapi/v2/account', {}, true);
         const balanceBefore = balBefore ? +balBefore.totalWalletBalance : equity;
         openTrade = { side:'SHORT', entry:pool.level, stop, tp, risk:riskAmt+fee, qty, idx:i, regime, balanceBefore };
