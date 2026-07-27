@@ -3,7 +3,7 @@ require('dotenv').config();
 /**
  * BulletBrain v3.0 — Live Runner (LONG + SHORT)
  * BULL → LONG  |  BEAR → SHORT  |  RANGING → FLAT
- * Entry: MARKET order. SL: STOP_MARKET closePosition. TP: bot-managed MARKET exit.
+ * Entry: MARKET order. SL: STOP_MARKET closePosition. TP: LIMIT reduceOnly.
  */
 
 const axios = require('axios');
@@ -11,15 +11,21 @@ const crypto = require('crypto');
 const WebSocket = require('ws');
 
 const SYMBOL = (process.env.BB_SYMBOL || 'ethusdt').toLowerCase();
+const SYMBOL_UPPER = SYMBOL.toUpperCase();
 const LIVE_MODE = process.env.BB_LIVE === 'true';
 const API_KEY = process.env.BINANCE_API_KEY || '';
 const SECRET_KEY = process.env.BINANCE_SECRET_KEY || '';
 const BASE_URL = 'https://fapi.binance.com';
 const INITIAL_CAPITAL = parseFloat(process.env.BB_CAPITAL || '100');
 
-const SWEEP_RVOL_MIN = 0.3, STOP_ATR_MULT = 0.3, TP_R_MULT = 2.5;  // Grid-optimized: tighter stop, bigger reward
-const RISK_PCT = 0.02, SKIP_RANGING = true;
-const FEE_RATE = 0.0004; // 0.04% taker fee per side
+const { TICK_SIZES } = require('../../config');
+
+const SWEEP_RVOL_MIN = 0.3;
+const STOP_ATR_MULT = 0.3;
+const TP_R_MULT = 2.5;
+const RISK_PCT = 0.02;
+const SKIP_RANGING = true;
+const FEE_RATE = 0.0004;
 
 const { ema } = require('../indicators/ema');
 const { atr } = require('../indicators/atr');
@@ -45,6 +51,10 @@ let trades = 0, wins = 0, losses = 0;
 let longTrades = 0, shortTrades = 0;
 let sweepsDetected = 0, ghostsBlocked = 0, rvolBlocked = 0, rangingSkipped = 0;
 
+let positionSideMode = 'ONEWAY'; // 'ONEWAY' or 'HEDGE'
+let tickSize = TICK_SIZES[SYMBOL_UPPER] || 0.01;
+let stepSize = 0.001;
+
 // ── Sign & API ─────────────────────────────────────────────
 function sign(params) {
   const qs = Object.keys(params).sort().map(k => k + '=' + params[k]).join('&');
@@ -64,7 +74,62 @@ async function binanceRequest(method, path, params = {}, signed = false) {
       )]
     });
     return resp.data;
-  } catch (e) { console.error('[BINANCE]', e.response?.data || e.message); return null; }
+  } catch (e) {
+    console.error('[BINANCE]', e.response?.data || e.message);
+    return null;
+  }
+}
+
+function formatPrice(price) {
+  const precision = tickSize >= 1 ? 0 : tickSize >= 0.1 ? 1 : tickSize >= 0.01 ? 2 : tickSize >= 0.001 ? 3 : 4;
+  return parseFloat(price.toFixed(precision));
+}
+
+function formatQty(qty) {
+  const precision = stepSize >= 1 ? 0 : stepSize >= 0.1 ? 1 : stepSize >= 0.01 ? 2 : stepSize >= 0.001 ? 3 : 4;
+  return parseFloat(qty.toFixed(precision));
+}
+
+async function initExchangeInfo() {
+  try {
+    const info = await binanceRequest('GET', '/fapi/v1/exchangeInfo');
+    const sym = info.symbols.find(s => s.symbol === SYMBOL_UPPER);
+    if (sym) {
+      const priceFilter = sym.filters.find(f => f.filterType === 'PRICE_FILTER');
+      const lotFilter = sym.filters.find(f => f.filterType === 'LOT_SIZE');
+      if (priceFilter) tickSize = parseFloat(priceFilter.tickSize);
+      if (lotFilter) stepSize = parseFloat(lotFilter.stepSize);
+      console.log('[INIT] tickSize=' + tickSize + ' stepSize=' + stepSize);
+    }
+    const posSide = await binanceRequest('GET', '/fapi/v1/positionSide/dual', {}, true);
+    positionSideMode = posSide?.dualSidePosition ? 'HEDGE' : 'ONEWAY';
+    console.log('[INIT] Position mode: ' + positionSideMode);
+    await binanceRequest('POST', '/fapi/v1/leverage', { symbol: SYMBOL_UPPER, leverage: 20 }, true);
+    console.log('[INIT] Leverage set to 20x');
+    await binanceRequest('POST', '/fapi/v1/marginType', { symbol: SYMBOL_UPPER, marginType: 'ISOLATED' }, true);
+    console.log('[INIT] Margin type set to ISOLATED');
+  } catch (e) {
+    console.error('[INIT] Failed:', e.message);
+  }
+}
+
+function buildOrderParams(baseParams) {
+  if (positionSideMode === 'HEDGE') {
+    const side = baseParams.side;
+    baseParams.positionSide = side === 'BUY' ? 'LONG' : 'SHORT';
+  }
+  return baseParams;
+}
+
+async function cancelAllOpenOrders() {
+  const res = await binanceRequest('DELETE', '/fapi/v1/allOpenOrders', { symbol: SYMBOL_UPPER }, true);
+  if (res) console.log('[CANCEL] All open orders cancelled');
+  return res;
+}
+
+async function getPosition() {
+  const positions = await binanceRequest('GET', '/fapi/v2/positionRisk', { symbol: SYMBOL_UPPER }, true);
+  return Array.isArray(positions) ? positions.find(p => p.symbol === SYMBOL_UPPER) : null;
 }
 
 // ── Regime & Pool Detection ─────────────────────────────────
@@ -105,9 +170,9 @@ function detectPools(type) {
   return pools;
 }
 
-// ═════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
 // CANDLE PROCESSING
-// ═════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
 async function processCandle(candle, i) {
   try {
   const regime = detectRegime(candle, i);
@@ -119,24 +184,21 @@ async function processCandle(candle, i) {
   }
 
   // ═══ ACTIVE TRADE MANAGEMENT ═══
-  // SL and TP are placed as Binance orders (STOP_MARKET + LIMIT reduceOnly TP)
-  // They auto-execute at exact price — the bot just monitors if position still open
   if (openTrade) {
     const t = openTrade;
-    // Check if position still exists on Binance
     let positionClosed = true;
     if (LIVE_MODE && !isScanning) {
       try {
-        const positions = await binanceRequest('GET', '/fapi/v2/positionRisk', { symbol: SYMBOL.toUpperCase() }, true);
-        const pos = Array.isArray(positions) ? positions.find(p => p.symbol === SYMBOL.toUpperCase()) : null;
+        const pos = await getPosition();
         if (pos && Math.abs(+pos.positionAmt) > 0) {
-          positionClosed = false; // Still open
+          positionClosed = false;
+        } else {
+          await cancelAllOpenOrders();
         }
       } catch (e) { /* keep monitoring */ }
     }
     
     if (positionClosed || i - t.idx > 50) {
-      // Position closed by SL or TP → read actual PnL from Binance balance
       let outcome = 'CLOSED', pnl = 0;
       if (LIVE_MODE && !isScanning) {
         try {
@@ -145,11 +207,10 @@ async function processCandle(candle, i) {
             const newBalance = +acc.totalWalletBalance;
             pnl = newBalance - t.balanceBefore;
             outcome = pnl >= 0 ? 'WIN' : 'LOSS';
-            equity = newBalance; // Use real Binance balance
+            equity = newBalance;
           }
         } catch (e) { pnl = -t.risk; outcome = 'LOSS'; }
       } else {
-        // Paper mode: simulated
         const candleReachedTP = t.side === 'LONG' ? candle.high >= t.tp : candle.low <= t.tp;
         const candleHitSL = t.side === 'LONG' ? candle.low <= t.stop : candle.high >= t.stop;
         if (candleReachedTP) { outcome = 'WIN'; pnl = t.risk * 1.8; }
@@ -196,19 +257,31 @@ async function processCandle(candle, i) {
       } else {
         const maxQty = equity * 0.8 * 20 / candle.close;
         const qty = Math.min(riskAmt / stopDist, maxQty);
-        const order = await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'MARKET', quantity: qty.toFixed(3) }, true);
-        if (!order) { console.error('[ORDER] FAILED LONG MARKET entry'); continue; }
-        console.log('[ORDER] MARKET BUY ' + qty.toFixed(3) + ' ETH');
-        // Place BOTH SL and TP on Binance — they auto-execute at exact price
-        await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'STOP_MARKET', stopPrice: stop.toFixed(2), closePosition: 'true' }, true);
-        console.log('[SL] STOP_MARKET @ $' + stop.toFixed(0));
-        await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'LIMIT', price: tp.toFixed(2), timeInForce: 'GTC', reduceOnly: 'true' }, true);
-        console.log('[TP] LIMIT TP @ $' + tp.toFixed(0));
-        // Get actual Binance balance for PnL tracking
+        const fmtQty = formatQty(qty);
+        
+        // Capture balance BEFORE entry
         const balBefore = await binanceRequest('GET', '/fapi/v2/account', {}, true);
         const balanceBefore = balBefore ? +balBefore.totalWalletBalance : equity;
-        openTrade = { side:'LONG', entry:pool.level, stop, tp, risk:riskAmt+fee, qty, idx:i, regime, balanceBefore };
-        console.log('[🔥 ENTRY] LIVE LONG | qty=' + qty.toFixed(3) + ' | SL=$' + stop.toFixed(0) + ' | TP=$' + tp.toFixed(0));
+        
+        const entryParams = buildOrderParams({ symbol: SYMBOL_UPPER, side: 'BUY', type: 'MARKET', quantity: fmtQty });
+        const order = await binanceRequest('POST', '/fapi/v1/order', entryParams, true);
+        if (!order) { console.error('[ORDER] FAILED LONG MARKET entry'); continue; }
+        console.log('[ORDER] MARKET BUY ' + fmtQty + ' ' + SYMBOL_UPPER.replace('USDT',''));
+        
+        // Place SL
+        const slParams = buildOrderParams({ symbol: SYMBOL_UPPER, side: 'SELL', type: 'STOP_MARKET', stopPrice: formatPrice(stop), closePosition: 'true' });
+        const slResult = await binanceRequest('POST', '/fapi/v1/order', slParams, true);
+        if (!slResult) { console.error('[SL] FAILED to place STOP_MARKET @ $' + formatPrice(stop)); await cancelAllOpenOrders(); continue; }
+        console.log('[SL] STOP_MARKET @ $' + formatPrice(stop));
+        
+        // Place TP with quantity
+        const tpParams = buildOrderParams({ symbol: SYMBOL_UPPER, side: 'SELL', type: 'LIMIT', price: formatPrice(tp), quantity: fmtQty, timeInForce: 'GTC', reduceOnly: 'true' });
+        const tpResult = await binanceRequest('POST', '/fapi/v1/order', tpParams, true);
+        if (!tpResult) { console.error('[TP] FAILED to place LIMIT TP @ $' + formatPrice(tp)); await cancelAllOpenOrders(); continue; }
+        console.log('[TP] LIMIT TP @ $' + formatPrice(tp) + ' qty=' + fmtQty);
+        
+        openTrade = { side:'LONG', entry:pool.level, stop, tp, risk:riskAmt+fee, qty: fmtQty, idx:i, regime, balanceBefore };
+        console.log('[🔥 ENTRY] LIVE LONG | qty=' + fmtQty + ' | SL=$' + formatPrice(stop) + ' | TP=$' + formatPrice(tp));
       }
       break;
     }
@@ -230,17 +303,28 @@ async function processCandle(candle, i) {
       } else {
         const maxQty = equity * 0.8 * 20 / candle.close;
         const qty = Math.min(riskAmt / stopDist, maxQty);
-        const order = await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'SELL', type: 'MARKET', quantity: qty.toFixed(3) }, true);
-        if (!order) { console.error('[ORDER] FAILED SHORT MARKET entry'); continue; }
-        console.log('[ORDER] MARKET SELL ' + qty.toFixed(3) + ' ETH');
-        await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'STOP_MARKET', stopPrice: stop.toFixed(2), closePosition: 'true' }, true);
-        console.log('[SL] STOP_MARKET @ $' + stop.toFixed(0));
-        await binanceRequest('POST', '/fapi/v1/order', { symbol: SYMBOL.toUpperCase(), side: 'BUY', type: 'LIMIT', price: tp.toFixed(2), timeInForce: 'GTC', reduceOnly: 'true' }, true);
-        console.log('[TP] LIMIT TP @ $' + tp.toFixed(0));
+        const fmtQty = formatQty(qty);
+        
         const balBefore = await binanceRequest('GET', '/fapi/v2/account', {}, true);
         const balanceBefore = balBefore ? +balBefore.totalWalletBalance : equity;
-        openTrade = { side:'SHORT', entry:pool.level, stop, tp, risk:riskAmt+fee, qty, idx:i, regime, balanceBefore };
-        console.log('[🔥 ENTRY] LIVE SHORT | qty=' + qty.toFixed(3) + ' | SL=$' + stop.toFixed(0) + ' | TP=$' + tp.toFixed(0));
+        
+        const entryParams = buildOrderParams({ symbol: SYMBOL_UPPER, side: 'SELL', type: 'MARKET', quantity: fmtQty });
+        const order = await binanceRequest('POST', '/fapi/v1/order', entryParams, true);
+        if (!order) { console.error('[ORDER] FAILED SHORT MARKET entry'); continue; }
+        console.log('[ORDER] MARKET SELL ' + fmtQty + ' ' + SYMBOL_UPPER.replace('USDT',''));
+        
+        const slParams = buildOrderParams({ symbol: SYMBOL_UPPER, side: 'BUY', type: 'STOP_MARKET', stopPrice: formatPrice(stop), closePosition: 'true' });
+        const slResult = await binanceRequest('POST', '/fapi/v1/order', slParams, true);
+        if (!slResult) { console.error('[SL] FAILED to place STOP_MARKET @ $' + formatPrice(stop)); await cancelAllOpenOrders(); continue; }
+        console.log('[SL] STOP_MARKET @ $' + formatPrice(stop));
+        
+        const tpParams = buildOrderParams({ symbol: SYMBOL_UPPER, side: 'BUY', type: 'LIMIT', price: formatPrice(tp), quantity: fmtQty, timeInForce: 'GTC', reduceOnly: 'true' });
+        const tpResult = await binanceRequest('POST', '/fapi/v1/order', tpParams, true);
+        if (!tpResult) { console.error('[TP] FAILED to place LIMIT TP @ $' + formatPrice(tp)); await cancelAllOpenOrders(); continue; }
+        console.log('[TP] LIMIT TP @ $' + formatPrice(tp) + ' qty=' + fmtQty);
+        
+        openTrade = { side:'SHORT', entry:pool.level, stop, tp, risk:riskAmt+fee, qty: fmtQty, idx:i, regime, balanceBefore };
+        console.log('[🔥 ENTRY] LIVE SHORT | qty=' + fmtQty + ' | SL=$' + formatPrice(stop) + ' | TP=$' + formatPrice(tp));
       }
       break;
     }
@@ -252,7 +336,7 @@ async function processCandle(candle, i) {
 function umpireReport() {
   const wr = trades > 0 ? (wins / trades * 100) : 0;
   console.log('════ ════ UMPIRE @ ' + new Date().toISOString() + ' ════ ═════');
-  console.log('  Coin: ' + SYMBOL.toUpperCase() + ' | Regime: ' + lastRegime + ' | Mode: ' + (LIVE_MODE ? '🔴 LIVE' : '📄 PAPER'));
+  console.log('  Coin: ' + SYMBOL_UPPER + ' | Regime: ' + lastRegime + ' | Mode: ' + (LIVE_MODE ? '🔴 LIVE' : '📄 PAPER'));
   console.log('  Equity: $' + equity.toFixed(2) + ' | Trades: ' + trades + ' (L:' + longTrades + '/S:' + shortTrades + ') | WR: ' + wr.toFixed(0) + '% | PnL: $' + (equity - INITIAL_CAPITAL).toFixed(2));
   console.log('  Sweeps: ' + sweepsDetected + ' | Ghosts: ' + ghostsBlocked + ' | RVOL skip: ' + rvolBlocked + ' | Range skip: ' + rangingSkipped);
   console.log('═══════════════════════════════════════════════════');
@@ -268,16 +352,18 @@ function computeIndicators() {
 async function main() {
   console.log('═══════════════════════════════════════════════');
   console.log('  BulletBrain v3.0 — Live Runner');
-  console.log('  Coin: ' + SYMBOL.toUpperCase() + ' | Mode: ' + (LIVE_MODE ? '🔴 LIVE' : '📄 PAPER'));
-  console.log('  MARKET entry | SL: STOP_MARKET | TP: MARKET exit | Fee: ' + (FEE_RATE*100).toFixed(2) + '%');
+  console.log('  Coin: ' + SYMBOL_UPPER + ' | Mode: ' + (LIVE_MODE ? '🔴 LIVE' : '📄 PAPER'));
+  console.log('  MARKET entry | SL: STOP_MARKET | TP: LIMIT reduceOnly | Fee: ' + (FEE_RATE*100).toFixed(2) + '%');
   console.log('  RVOL≥' + SWEEP_RVOL_MIN + ' | ' + TP_R_MULT + 'R | ' + STOP_ATR_MULT + ' ATR');
   console.log('═══════════════════════════════════════════════');
+
+  await initExchangeInfo();
 
   console.log('Backfilling 1500 candles...');
   const endTime = Date.now(), startTime = endTime - 1500 * 15 * 60 * 1000;
   try {
     const resp = await axios.get('https://fapi.binance.com/fapi/v1/klines', {
-      params: { symbol: SYMBOL.toUpperCase(), interval: '15m', startTime, endTime, limit: 1500 }, timeout: 15000,
+      params: { symbol: SYMBOL_UPPER, interval: '15m', startTime, endTime, limit: 1500 }, timeout: 15000,
     });
     for (const k of resp.data) candles.push({ openTime: k[0], closeTime: k[6], open: +k[1], high: +k[2], low: +k[3], close: +k[4], volume: +k[5] });
     console.log('  Backfilled ' + candles.length + ' candles');
@@ -308,7 +394,7 @@ async function main() {
   setInterval(async () => {
     try {
       const resp = await axios.get('https://fapi.binance.com/fapi/v1/klines', {
-        params: { symbol: SYMBOL.toUpperCase(), interval: '15m', limit: 2 }, timeout: 10000,
+        params: { symbol: SYMBOL_UPPER, interval: '15m', limit: 2 }, timeout: 10000,
       });
       for (const k of resp.data) {
         const kTime = new Date(k[0]).toISOString().slice(5,16);
