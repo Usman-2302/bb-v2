@@ -1,0 +1,82 @@
+{
+  "buyHold": {
+    "ETHUSDT": {
+      "totalLogReturn": 0.9523643067087203,
+      "multiple": 2.591830302698103,
+      "cagr": 0.18661218408696567,
+      "sharpe": 0.21966264441600494,
+      "maxDDlog": 1.5775181888224497,
+      "maxDDpct": 0.7935130756288556
+    },
+    "BTCUSDT": {
+      "totalLogReturn": 0.7756560680437502,
+      "multiple": 2.1720166505551384,
+      "cagr": 0.14953192140712757,
+      "sharpe": 0.24183267616327297,
+      "maxDDlog": 1.455411318823593,
+      "maxDDpct": 0.7666956183209541
+    }
+  },
+  "findings": [
+    {
+      "nm": "ts_momentum_1d",
+      "lm": 0.13368544444444447,
+      "sm": -0.024360684210526333,
+      "verdict": "LONG-ONLY — indistinguishable from beta"
+    },
+    {
+      "nm": "donchian_breakout_4h",
+      "lm": 0.2079911818181819,
+      "sm": -0.0475123739130435,
+      "verdict": "LONG-ONLY — indistinguishable from beta"
+    },
+    {
+      "nm": "htf_trend_pullback_4h",
+      "lm": -0.14280647792207793,
+      "sm": -0.29947065165876763,
+      "verdict": "both sides negative"
+    },
+    {
+      "nm": "bos_continuation_4h",
+      "lm": 0.003973621359223321,
+      "sm": 0.019038745704467355,
+      "verdict": "symmetric — genuine two-sided signal"
+    },
+    {
+      "nm": "choch_reversal_4h",
+      "lm": -0.1343672433155079,
+      "sm": -0.11046867581047376,
+      "verdict": "both sides negative"
+    },
+    {
+      "nm": "vol_squeeze_breakout_4h",
+      "lm": -0.19319571875,
+      "sm": -0.017364041666666653,
+      "verdict": "both sides negative"
+    },
+    {
+      "nm": "lowvol_trend_4h",
+      "lm": 0.192437590909091,
+      "sm": -0.009396782467532493,
+      "verdict": "LONG-ONLY — indistinguishable from beta"
+    },
+    {
+      "nm": "vwap_reversion_1h",
+      "lm": -0.1692550670525812,
+      "sm": -0.18858652428549066,
+      "verdict": "both sides negative"
+    },
+    {
+      "nm": "zscore_reversion_1h",
+      "lm": -0.16997923536585355,
+      "sm": -0.16489421825396833,
+      "verdict": "both sides negative"
+    },
+    {
+      "nm": "trend_pullback_1h",
+      "lm": -0.32066408525937357,
+      "sm": -0.35991515101193555,
+      "verdict": "both sides negative"
+    }
+  ]
+}
