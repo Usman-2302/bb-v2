@@ -153,9 +153,9 @@ function buildOrderParams(baseParams, tradeSide) {
 }
 
 async function cancelAllOpenOrders() {
-  const res = await binanceRequest('DELETE', '/fapi/v1/allOpenOrders', { symbol: SYMBOL_UPPER }, true);
-  if (res) console.log('[CANCEL] All open orders cancelled');
-  return res;
+  await binanceRequest('DELETE', '/fapi/v1/allOpenOrders', { symbol: SYMBOL_UPPER }, true);
+  await binanceRequest('DELETE', '/fapi/v1/algoOpenOrders', { symbol: SYMBOL_UPPER }, true);
+  console.log('[CANCEL] All open orders cancelled (standard + algo)');
 }
 
 // Returns the position entry, a synthetic flat entry, or null when the API
@@ -175,13 +175,31 @@ async function getPosition(tradeSide) {
 // leg could not be placed after one retry — caller MUST emergency-close then.
 async function attachProtection(side, qty, stop, tp) {
   const closeSide = side === 'LONG' ? 'SELL' : 'BUY';
-  const slParams = buildOrderParams({ symbol: SYMBOL_UPPER, side: closeSide, type: 'STOP_MARKET', stopPrice: formatPrice(stop), closePosition: 'true' }, side);
-  let slResult = await binanceRequest('POST', '/fapi/v1/order', slParams, true);
-  if (!slResult) { await sleep(500); slResult = await binanceRequest('POST', '/fapi/v1/order', slParams, true); }
-  if (!slResult) { console.error('[SL] FAILED twice @ $' + formatPrice(stop)); return null; }
-  console.log('[SL] STOP_MARKET @ $' + formatPrice(stop) + ' (id ' + slResult.orderId + ')');
 
-  const tpParams = buildOrderParams({ symbol: SYMBOL_UPPER, side: closeSide, type: 'LIMIT', price: formatPrice(tp), quantity: formatQty(qty), timeInForce: 'GTC', reduceOnly: 'true' }, side);
+  // SL via ALGO endpoint (required for STOP_MARKET conditional orders)
+  const slParams = buildOrderParams({
+    symbol: SYMBOL_UPPER,
+    side: closeSide,
+    algoType: 'CONDITIONAL',
+    type: 'STOP_MARKET',
+    triggerPrice: formatPrice(stop),
+    closePosition: 'true'
+  }, side);
+  let slResult = await binanceRequest('POST', '/fapi/v1/algoOrder', slParams, true);
+  if (!slResult) { await sleep(500); slResult = await binanceRequest('POST', '/fapi/v1/algoOrder', slParams, true); }
+  if (!slResult) { console.error('[SL] FAILED twice @ $' + formatPrice(stop)); return null; }
+  console.log('[SL] STOP_MARKET (algo) @ $' + formatPrice(stop) + ' (id ' + slResult.orderId + ')');
+
+  // TP via standard ORDER endpoint (LIMIT is a standard order type)
+  const tpParams = buildOrderParams({
+    symbol: SYMBOL_UPPER,
+    side: closeSide,
+    type: 'LIMIT',
+    price: formatPrice(tp),
+    quantity: formatQty(qty),
+    timeInForce: 'GTC',
+    reduceOnly: 'true'
+  }, side);
   let tpResult = await binanceRequest('POST', '/fapi/v1/order', tpParams, true);
   if (!tpResult) { await sleep(500); tpResult = await binanceRequest('POST', '/fapi/v1/order', tpParams, true); }
   if (!tpResult) { console.error('[TP] FAILED twice @ $' + formatPrice(tp)); return null; }
