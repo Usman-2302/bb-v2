@@ -6,8 +6,54 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**BulletBrain v3.0** — a Node.js crypto futures trading bot using Smart Money Concepts (SMC).
-**Status: Phase D8 complete (LSO), D9-D14 pending. BLOCKED on 2021-2024 OI data.**
+**BulletBrain v3.0** — a Node.js crypto futures trading bot using Smart Money Concepts (SMC),
+now primarily a **quantitative research platform**.
+
+**Status: D9-D14 are complete** (see `phase_d9_log.md` .. `phase_d14_log.md`); the
+"D9-D14 pending / BLOCKED on OI data" line previously here was stale — D9 removed
+the OI dependency via Gate VP + 4H trend + tiered CVD.
+
+---
+
+## ⚠ Live strategy verdict — read before enabling BB_LIVE=true
+
+The 15m liquidity-sweep strategy in `src/live/liveRunner.js` has **no measurable
+edge**. Reproduce with `npm run backtest:replica` over 195,294 ETH 15m candles
+(2021-01 → 2026-07); BTC reproduces it independently:
+
+| costs | expectancy | PF |
+|---|---|---|
+| zero | +0.013 R | 0.86 |
+| real fees | −0.336 R | 0.38 |
+| fees + slippage | −0.611 R | 0.14 |
+
+Realised R:R is 0.26:1 against a nominal 2.5:1, because stop and target are
+anchored to `pool.level` while entry is a MARKET fill at candle close. Measured
+directly, the signal's alpha is **negative** (48% hit rate vs a 50% baseline) and
+every added confirmation filter makes it monotonically worse.
+
+**A zero-fee exchange does not fix this** — at zero cost the strategy is still
+PF 0.86. MEXC's *API* futures fees are maker 0.01% / taker 0.05%, so taker is
+identical to Binance.
+
+`liveRunner.js` is **frozen**. Its execution bugs are fixed (see the header of
+that file and `AUDIT.md`), which makes it execute correctly — it does not make it
+profitable. Full analysis: `AUDIT.md`, `QUANT-REVIEW.md`.
+
+## Research platform
+
+Strategy research now lives in `src/research/` and is driven by
+`src/live/claude-runner.js`, which holds no API keys and cannot place an order.
+
+```bash
+npm run claude:once     # one full research cycle
+npm run claude:auto     # continuous (VPS: ecosystem.research.config.js)
+cat results/research/LEADERBOARD.md
+```
+
+Docs: `docs/RESEARCH.md`. Reports: `RESEARCH-PLATFORM-FINAL.md`.
+Adding a strategy means adding one object to `src/research/strategies/registry.js`
+— never modify `src/research/core/engine.js` to make a strategy work.
 
 Two planning documents are authoritative:
 - `backtestplan.md` — strategy specs, engine design, accept/reject rules
