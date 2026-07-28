@@ -187,8 +187,12 @@ async function attachProtection(side, qty, stop, tp) {
   }, side);
   let slResult = await binanceRequest('POST', '/fapi/v1/algoOrder', slParams, true);
   if (!slResult) { await sleep(500); slResult = await binanceRequest('POST', '/fapi/v1/algoOrder', slParams, true); }
-  if (!slResult) { console.error('[SL] FAILED twice @ $' + formatPrice(stop)); return null; }
-  console.log('[SL] STOP_MARKET (algo) @ $' + formatPrice(stop) + ' (id ' + slResult.orderId + ')');
+  if (!slResult) { 
+    const err = lastBinanceError ? ' code=' + lastBinanceError.code + ' msg=' + lastBinanceError.msg : '';
+    console.error('[SL] FAILED twice @ $' + formatPrice(stop) + err); 
+    return null; 
+  }
+  console.log('[SL] STOP_MARKET (algo) @ $' + formatPrice(stop) + ' (id ' + slResult.algoId + ')');
 
   // TP via standard ORDER endpoint (LIMIT is a standard order type)
   const tpParams = buildOrderParams({
@@ -202,10 +206,14 @@ async function attachProtection(side, qty, stop, tp) {
   }, side);
   let tpResult = await binanceRequest('POST', '/fapi/v1/order', tpParams, true);
   if (!tpResult) { await sleep(500); tpResult = await binanceRequest('POST', '/fapi/v1/order', tpParams, true); }
-  if (!tpResult) { console.error('[TP] FAILED twice @ $' + formatPrice(tp)); return null; }
+  if (!tpResult) { 
+    const err = lastBinanceError ? ' code=' + lastBinanceError.code + ' msg=' + lastBinanceError.msg : '';
+    console.error('[TP] FAILED twice @ $' + formatPrice(tp) + err); 
+    return null; 
+  }
   console.log('[TP] LIMIT @ $' + formatPrice(tp) + ' qty=' + formatQty(qty) + ' (id ' + tpResult.orderId + ')');
 
-  return { slOrderId: slResult.orderId, tpOrderId: tpResult.orderId };
+  return { slOrderId: slResult.algoId, tpOrderId: tpResult.orderId };
 }
 
 // Last-resort flatten: cancel whatever got placed, then market reduceOnly close.
