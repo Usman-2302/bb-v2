@@ -14,8 +14,28 @@ require('dotenv').config();
  *     (null response) means "unknown → keep monitoring", NEVER "flat → cancel orders".
  *  4. On startup the real balance is synced and any pre-existing position is
  *     adopted: stale orders are cancelled and fresh SL/TP are attached.
- *  5. Candle processing is claimed (lastProcessed) BEFORE any await, so the
- *     WS feed and the REST fallback can never double-process a candle.
+ *  5. Candle processing is claimed (lastProcessed) BEFORE any await, AND the
+ *     body is serialised, so the WS feed and the REST fallback can neither
+ *     double-process one candle nor process two candles concurrently.
+ *  6. TIME_EXIT_CANDLES is ENFORCED live, not just logged. A position past the
+ *     limit is market-closed; the next poll confirms flat and books the PnL.
+ *  7. Paper/scan mode prices fills with the same real fee schedule and the same
+ *     MARKET entry as live, and resolves SL before TP when one candle spans both.
+ *     It must never report a result the live path could not achieve.
+ *  8. Prices and quantities are quantised to the exchange increment (a multiple
+ *     of tickSize/stepSize), not to a decimal place count.
+ *
+ * ⚠ STRATEGY STATUS — READ BEFORE ENABLING BB_LIVE=true
+ *   These parameters (RVOL 0.3 / 0.3xATR stop / 2.5R) were grid-searched and
+ *   never cost-aware backtested. `npm run backtest:replica` reproduces this exact
+ *   logic over 195,294 ETH 15m candles (2021-01 -> 2026-07):
+ *     zero costs     : +0.013 R/trade, PF 0.86   (no gross edge)
+ *     real fees      : -0.336 R/trade, PF 0.38
+ *     fees+slippage  : -0.611 R/trade, PF 0.14
+ *   Realised R:R is 0.26:1, not the nominal 2.5:1, because stop and target are
+ *   anchored to pool.level while entry is a MARKET fill at candle close. BTC
+ *   reproduces this independently. The fixes below make an edgeless strategy
+ *   execute CORRECTLY — they do not create an edge. See AUDIT.md / QUANT-REVIEW.md.
  */
 
 const axios = require('axios');
@@ -38,9 +58,22 @@ const STOP_ATR_MULT = 0.3;
 const TP_R_MULT = 2.5;
 const RISK_PCT = 0.02;
 const SKIP_RANGING = true;
-const FEE_RATE = 0.0004;
 const TIME_EXIT_CANDLES = 50;
 const LEVERAGE = 20;
+
+// Real Binance USD-M fee schedule, measured from this account's own
+// /fapi/v1/userTrades fills (entry 0.05000% taker, TP 0.02000% maker).
+// The previous single FEE_RATE=0.0004 was both the wrong rate AND applied to
+// riskAmt instead of notional, understating true cost by ~3 orders of magnitude.
+// A STOP_MARKET stop can never rest, so a loss always pays taker on BOTH legs.
+const TAKER_FEE = 0.0005;
+const MAKER_FEE = 0.0002;
+const WIN_COST_RATE = TAKER_FEE + MAKER_FEE;   // MARKET in, LIMIT TP out
+const LOSS_COST_RATE = TAKER_FEE + TAKER_FEE;  // MARKET in, STOP_MARKET out
+
+// Refuse setups whose TP cannot clear round-trip cost by this factor.
+// 0 disables the filter (default: preserves existing behaviour).
+const MIN_EDGE_COST_MULT = parseFloat(process.env.BB_MIN_EDGE || '0');
 
 const { ema } = require('../indicators/ema');
 const { atr } = require('../indicators/atr');
@@ -66,7 +99,7 @@ let equity = INITIAL_CAPITAL, maxEquity = equity;
 let openTrade = null;
 let trades = 0, wins = 0, losses = 0;
 let longTrades = 0, shortTrades = 0;
-let sweepsDetected = 0, ghostsBlocked = 0, rvolBlocked = 0, rangingSkipped = 0;
+let sweepsDetected = 0, ghostsBlocked = 0, rvolBlocked = 0, rangingSkipped = 0, edgeBlocked = 0;
 
 let positionSideMode = 'ONEWAY'; // 'ONEWAY' or 'HEDGE'
 let tickSize = TICK_SIZES[SYMBOL_UPPER] || 0.01;
@@ -76,6 +109,30 @@ let lastBinanceError = null;
 let lastProcessed = 0;
 let monitorApiFails = 0;
 
+// Serialises candle processing. `lastProcessed` stops the SAME candle being
+// handled twice, but it does NOT stop the WS feed and the REST poll handling two
+// DIFFERENT candles concurrently — both would await, both would observe
+// openTrade == null, and both would open a position. Candle boundaries are
+// precisely when both feeds fire, so this is not a remote possibility.
+let candleChain = Promise.resolve();
+function serialise(fn) {
+  const next = candleChain.then(fn, fn);
+  candleChain = next.catch(() => {});   // a rejected link must not kill the chain
+  return next;
+}
+
+// Quantise to an exchange increment. Deriving a decimal precision from tickSize
+// only works when the tick is a power of ten: a 0.5 tick with "1 decimal place"
+// happily produces 1877.3, which Binance rejects (-1111 / -4014). Round to a
+// MULTIPLE of the increment instead.
+function roundToIncrement(value, increment, mode = 'round') {
+  if (!(increment > 0)) return value;
+  const n = value / increment;
+  const k = mode === 'floor' ? Math.floor(n + 1e-9) : Math.round(n);
+  const decimals = Math.max(0, Math.min(12, (String(increment).split('.')[1] || '').length));
+  return parseFloat((k * increment).toFixed(decimals));
+}
+
 // ── Sign & API ─────────────────────────────────────────────
 function sign(params) {
   const qs = Object.keys(params).sort().map(k => k + '=' + params[k]).join('&');
@@ -84,9 +141,26 @@ function sign(params) {
   return params;
 }
 
+// Offset between Binance server time and the local clock. A VPS whose clock has
+// drifted more than recvWindow gets every signed request rejected with -1021,
+// which surfaces as "protection failed" rather than as a clock problem.
+let timeOffsetMs = 0;
+async function syncServerTime() {
+  try {
+    const r = await axios.get(BASE_URL + '/fapi/v1/time', { timeout: 10000 });
+    if (r.data && r.data.serverTime) {
+      timeOffsetMs = r.data.serverTime - Date.now();
+      console.log('[INIT] Clock offset vs Binance: ' + timeOffsetMs + 'ms');
+      if (Math.abs(timeOffsetMs) > 2000) {
+        console.error('[INIT] WARN: clock is off by ' + timeOffsetMs + 'ms — fix NTP on this host');
+      }
+    }
+  } catch (e) { console.error('[INIT] time sync failed:', e.message); }
+}
+
 async function binanceRequest(method, path, params = {}, signed = false) {
   lastBinanceError = null;
-  if (signed) params = sign({ ...params, timestamp: Date.now(), recvWindow: 5000 });
+  if (signed) params = sign({ ...params, timestamp: Date.now() + timeOffsetMs, recvWindow: 5000 });
   try {
     const url = signed ? BASE_URL + path + '?' + params._qs : BASE_URL + path;
     const resp = await axios({ method, url, params: signed ? undefined : params,
@@ -106,13 +180,12 @@ async function binanceRequest(method, path, params = {}, signed = false) {
 }
 
 function formatPrice(price) {
-  const precision = tickSize >= 1 ? 0 : tickSize >= 0.1 ? 1 : tickSize >= 0.01 ? 2 : tickSize >= 0.001 ? 3 : 4;
-  return parseFloat(price.toFixed(precision));
+  return roundToIncrement(price, tickSize, 'round');
 }
 
+// Quantity floors: rounding UP can exceed available margin or breach reduceOnly.
 function formatQty(qty) {
-  const precision = stepSize >= 1 ? 0 : stepSize >= 0.1 ? 1 : stepSize >= 0.01 ? 2 : stepSize >= 0.001 ? 3 : 4;
-  return parseFloat(qty.toFixed(precision));
+  return roundToIncrement(qty, stepSize, 'floor');
 }
 
 async function initExchangeInfo() {
@@ -145,6 +218,31 @@ async function initExchangeInfo() {
   else console.error('[INIT] WARN: marginType unchanged (open position or API error) — continuing with current setting');
 }
 
+// Single sizing path for BOTH paper and live, so the two can never disagree.
+//
+// riskAmt is now a cap on the TOTAL loss (price move + both fee legs), not just
+// the price component, and it measures from the ACTUAL entry rather than from
+// pool.level. Previously qty = riskAmt/stopDist ignored fees and used the wrong
+// anchor, so a "2% risk" trade lost ~2.8% of equity when the stop hit.
+function sizePosition(stop, price) {
+  const riskAmt = equity * RISK_PCT;
+  const perUnitLoss = Math.abs(price - stop) + price * LOSS_COST_RATE;
+  const riskQty = perUnitLoss > 0 ? riskAmt / perUnitLoss : 0;
+  const maxQty = equity * 0.8 * LEVERAGE / price;
+  const qty = Math.min(riskQty, maxQty);
+  return {
+    qty, riskAmt,
+    feeEst: qty * price * LOSS_COST_RATE,
+    cappedBy: maxQty < riskQty ? 'LEVERAGE' : 'RISK_PCT',
+  };
+}
+
+// Reject setups whose target cannot pay for the round trip.
+function clearsCostFloor(entryRef, tpDist) {
+  if (!(MIN_EDGE_COST_MULT > 0)) return true;
+  return (tpDist / entryRef) >= MIN_EDGE_COST_MULT * WIN_COST_RATE;
+}
+
 // positionSide always comes from the TRADE side, never from the order side:
 // closing a LONG is side=SELL with positionSide=LONG in Hedge Mode.
 function buildOrderParams(baseParams, tradeSide) {
@@ -152,19 +250,34 @@ function buildOrderParams(baseParams, tradeSide) {
   return baseParams;
 }
 
+// Reports what actually happened. This previously printed unconditional success
+// even when both DELETEs failed, which would hide an orphaned STOP_MARKET sitting
+// on the exchange after the bot believed it was flat.
 async function cancelAllOpenOrders() {
-  await binanceRequest('DELETE', '/fapi/v1/allOpenOrders', { symbol: SYMBOL_UPPER }, true);
-  await binanceRequest('DELETE', '/fapi/v1/algoOpenOrders', { symbol: SYMBOL_UPPER }, true);
-  console.log('[CANCEL] All open orders cancelled (standard + algo)');
+  const std = await binanceRequest('DELETE', '/fapi/v1/allOpenOrders', { symbol: SYMBOL_UPPER }, true);
+  const algo = await binanceRequest('DELETE', '/fapi/v1/algoOpenOrders', { symbol: SYMBOL_UPPER }, true);
+  if (std && algo) {
+    console.log('[CANCEL] All open orders cancelled (standard + algo)');
+  } else {
+    console.error('[CANCEL] INCOMPLETE — standard=' + (std ? 'ok' : 'FAILED') +
+      ' algo=' + (algo ? 'ok' : 'FAILED') +
+      ' — an orphaned protective order may still be live on the exchange');
+  }
+  return !!(std && algo);
 }
 
 // Returns the position entry, a synthetic flat entry, or null when the API
 // failed (null MUST be treated as "unknown", never as "flat").
 async function getPosition(tradeSide) {
   const positions = await binanceRequest('GET', '/fapi/v2/positionRisk', { symbol: SYMBOL_UPPER }, true);
-  if (!Array.isArray(positions)) return null;
+  if (!Array.isArray(positions)) return null;   // API failure → unknown
   const matches = positions.filter(p => p.symbol === SYMBOL_UPPER);
-  if (matches.length === 0) return null;
+  // An empty array is a SUCCESSFUL response meaning "no position on this symbol",
+  // i.e. flat. Returning null here made the bot treat flat as "unknown" and hold
+  // openTrade forever, so the trade never booked and no new signal could fire.
+  // Latent on /fapi/v2/positionRisk; ACTIVE the moment v3 is adopted, which omits
+  // flat positions by design.
+  if (matches.length === 0) return { positionAmt: '0' };
   if (positionSideMode === 'HEDGE' && tradeSide) {
     return matches.find(p => p.positionSide === tradeSide) || { positionAmt: '0' };
   }
@@ -222,16 +335,48 @@ async function emergencyClose(side, qty) {
   const closeParams = buildOrderParams({ symbol: SYMBOL_UPPER, side: side === 'LONG' ? 'SELL' : 'BUY', type: 'MARKET', quantity: formatQty(qty), reduceOnly: 'true' }, side);
   let res = await binanceRequest('POST', '/fapi/v1/order', closeParams, true);
   if (!res) { await sleep(500); res = await binanceRequest('POST', '/fapi/v1/order', closeParams, true); }
-  if (res) console.log('[EMERGENCY] Position closed at market');
-  else console.error('[EMERGENCY] CLOSE FAILED — NAKED POSITION — MANUAL ACTION REQUIRED ON BINANCE');
+  if (res) {
+    console.log('[EMERGENCY] Position closed at market');
+    // Resync equity from the wallet. An emergency close never goes through the
+    // openTrade booking path, so without this the in-process equity stays stale
+    // and every subsequent position is sized off a balance that no longer exists.
+    const acc = await binanceRequest('GET', '/fapi/v2/account', {}, true);
+    if (acc) {
+      equity = +acc.totalWalletBalance;
+      if (equity > maxEquity) maxEquity = equity;
+      console.log('[EMERGENCY] Equity resynced: $' + equity.toFixed(2));
+    } else {
+      console.error('[EMERGENCY] Equity resync FAILED — sizing may use a stale balance');
+    }
+  } else {
+    // A reduceOnly close is REJECTED when the position is already flat (e.g. the
+    // stop filled in the meantime). Confirm with the exchange before screaming
+    // "naked position" — a false alarm every time trains you to ignore the real one.
+    const pos = await getPosition(side);
+    if (pos && Math.abs(+pos.positionAmt) === 0) {
+      console.log('[EMERGENCY] Close rejected but position is already FLAT — nothing to do');
+      const acc = await binanceRequest('GET', '/fapi/v2/account', {}, true);
+      if (acc) equity = +acc.totalWalletBalance;
+    } else if (pos) {
+      console.error('[EMERGENCY] CLOSE FAILED — NAKED POSITION amt=' + pos.positionAmt +
+        ' — MANUAL ACTION REQUIRED ON BINANCE');
+    } else {
+      console.error('[EMERGENCY] CLOSE FAILED and position state UNKNOWN — CHECK BINANCE MANUALLY');
+    }
+  }
 }
 
 // Full live entry pipeline. Returns 'OPENED' | 'SKIP' (try next pool) | 'ABORT' (stop this candle).
 async function placeLiveTrade(side, stop, tp, stopDist, riskAmt, fee, i, regime, candle) {
   const isLong = side === 'LONG';
-  const maxQty = equity * 0.8 * LEVERAGE / candle.close;
-  const qty = Math.min(riskAmt / stopDist, maxQty);
+  const sized = sizePosition(stop, candle.close);
+  const qty = sized.qty;
   const fmtQty = formatQty(qty);
+  // Which constraint actually governs size. At small equity with 20x leverage the
+  // cap — not RISK_PCT — is usually binding, so "2% risk" is not what is running.
+  console.log('[SIZE] capped-by=' + sized.cappedBy + ' qty=' + fmtQty +
+    ' notional=$' + (qty * candle.close).toFixed(2) +
+    ' (' + (qty * candle.close / equity).toFixed(1) + 'x equity)');
   if (!(fmtQty > 0) || fmtQty < minQty || fmtQty * candle.close < minNotional) {
     console.error('[ORDER] Size too small: qty=' + fmtQty + ' notional=$' + (fmtQty * candle.close).toFixed(2) + ' — skip');
     return 'SKIP';
@@ -253,10 +398,19 @@ async function placeLiveTrade(side, stop, tp, stopDist, riskAmt, fee, i, regime,
   if (!prot) {
     console.error('[SAFETY] Protection incomplete — EMERGENCY CLOSE');
     await emergencyClose(side, fillQty);
+    // An aborted entry still cost a round trip in fees and slippage. It never
+    // reached recordTrade, so these losses were invisible to the umpire's win
+    // rate — the reported WR was better than reality by exactly the worst cases.
+    const after = await binanceRequest('GET', '/fapi/v2/account', {}, true);
+    const realised = after ? (+after.totalWalletBalance - balanceBefore) : 0;
+    if (after) equity = +after.totalWalletBalance;
+    recordTrade({ side, regime }, 'ABORT', realised);
     return 'ABORT';
   }
 
-  openTrade = { side, entry: fillPrice, stop, tp, risk: riskAmt + fee, qty: fillQty, idx: i, regime, balanceBefore, slOrderId: prot.slOrderId, tpOrderId: prot.tpOrderId };
+  // entryOpenTime, not a buffer index: candles.shift() at the 15000 cap slides
+  // every index, which silently corrupted the time-exit countdown.
+  openTrade = { side, entry: fillPrice, stop, tp, risk: riskAmt + fee, qty: fillQty, entryOpenTime: candle.openTime, regime, balanceBefore, slOrderId: prot.slOrderId, tpOrderId: prot.tpOrderId };
   console.log('[🔥 ENTRY] LIVE ' + side + ' | qty=' + fillQty + ' | SL=$' + formatPrice(stop) + ' | TP=$' + formatPrice(tp));
   return 'OPENED';
 }
@@ -297,7 +451,7 @@ async function adoptExistingPosition() {
   const prot = await attachProtection(side, qty, stop, tp);
   if (!prot) { console.error('[ADOPT] Protection failed — EMERGENCY CLOSE'); await emergencyClose(side, qty); return; }
 
-  openTrade = { side, entry, stop, tp, risk: equity * RISK_PCT, qty, idx: lastIdx, regime: lastRegime, balanceBefore: equity, slOrderId: prot.slOrderId, tpOrderId: prot.tpOrderId, adopted: true };
+  openTrade = { side, entry, stop, tp, risk: equity * RISK_PCT, qty, entryOpenTime: candles[lastIdx].openTime, regime: lastRegime, balanceBefore: equity, slOrderId: prot.slOrderId, tpOrderId: prot.tpOrderId, adopted: true };
   console.log('[ADOPT] Protected | SL=$' + formatPrice(stop) + ' | TP=$' + formatPrice(tp) + ' | PnL tracked from $' + equity.toFixed(2));
 }
 
@@ -334,7 +488,12 @@ function detectPools(type) {
         if (type === 'LONG' ? cv < Math.min(v1, v2) : cv > Math.max(v1, v2)) { swept = true; break; }
       }
       if (swept) continue;
-      pools.push({ level: Math.floor((v1 + v2) / 2), formed: sj, expires: sj + 500 });
+      // Round to the symbol's tick, not to whole units. Math.floor() here threw
+      // away up to ~$1 of level precision on ETH (~0.05%, comparable to the whole
+      // fee budget) and collapsed to 0 on any sub-$1 symbol, producing a zero
+      // pool level and nonsensical stop/TP.
+      const mid = (v1 + v2) / 2;
+      pools.push({ level: roundToIncrement(mid, tickSize), formed: sj, expires: sj + 500 });
     }
   }
   return pools;
@@ -342,7 +501,9 @@ function detectPools(type) {
 
 function recordTrade(t, outcome, pnl) {
   if (equity > maxEquity) maxEquity = equity;
-  trades++; if (outcome === 'WIN') wins++; else if (outcome === 'LOSS') losses++;
+  // Count by realised P&L, not by label, so ABORT/TIME exits land in the right
+  // bucket instead of vanishing from the win-rate numerator.
+  trades++; if (pnl > 0) wins++; else losses++;
   if (t.side === 'LONG') longTrades++; else shortTrades++;
   console.log('[TRADE] ' + t.side + ' ' + outcome + ' | PnL: $' + pnl.toFixed(2) + ' | Balance: $' + equity.toFixed(2) + ' | WR: ' + (trades>0?(wins/trades*100).toFixed(0):'0') + '%');
 }
@@ -363,15 +524,33 @@ async function processCandle(candle, i) {
   // ═══ ACTIVE TRADE MANAGEMENT ═══
   if (openTrade) {
     const t = openTrade;
+    const heldCandles = Math.round((candle.openTime - t.entryOpenTime) / (15 * 60 * 1000));
     if (!LIVE_MODE || isScanning) {
-      // Paper: simulated SL/TP resolution from candle extremes
+      // Paper: resolve from candle extremes and price the fills for real.
+      // Previously this booked a flat risk*1.8 on any TP touch, -risk on any SL
+      // touch, and resolved TP first when a candle contained both — i.e. it could
+      // not lose to fees or intrabar sequence. Those are exactly what decide this
+      // strategy, so the old scan output was meaningless.
       const candleReachedTP = t.side === 'LONG' ? candle.high >= t.tp : candle.low <= t.tp;
       const candleHitSL = t.side === 'LONG' ? candle.low <= t.stop : candle.high >= t.stop;
-      if (candleReachedTP || candleHitSL || i - t.idx > TIME_EXIT_CANDLES) {
-        let outcome, pnl;
-        if (candleReachedTP) { outcome = 'WIN'; pnl = t.risk * 1.8; }
-        else if (candleHitSL) { outcome = 'LOSS'; pnl = -t.risk; }
-        else { outcome = 'TIME'; pnl = t.risk * 0.3; }
+      const timedOut = heldCandles >= TIME_EXIT_CANDLES;
+      if (candleReachedTP || candleHitSL || timedOut) {
+        const isLong = t.side === 'LONG';
+        let outcome, exitPrice, exitMaker;
+        // A single 15m candle often spans both levels; OHLC cannot order them.
+        // Assume the stop filled first — the conservative reading.
+        if (candleHitSL) { outcome = 'LOSS'; exitPrice = t.stop; exitMaker = false; }
+        else if (candleReachedTP) { outcome = 'WIN'; exitPrice = t.tp; exitMaker = true; }
+        else { outcome = 'TIME'; exitPrice = candle.close; exitMaker = false; }
+        const gross = (isLong ? exitPrice - t.entry : t.entry - exitPrice) * t.qty;
+        const fees = t.qty * t.entry * TAKER_FEE +
+                     t.qty * exitPrice * (exitMaker ? MAKER_FEE : TAKER_FEE);
+        const pnl = gross - fees;
+        // Reconcile the label with reality: hitting TP but finishing negative
+        // after fees is a LOSS, and labelling it WIN is exactly the misleading
+        // signal that hid the fee problem in the first place.
+        if (pnl > 0 && outcome !== 'WIN') outcome = 'WIN';
+        if (pnl <= 0 && outcome === 'WIN') outcome = 'TP_BUT_LOSS';
         equity += pnl;
         recordTrade(t, outcome, pnl);
         openTrade = null;
@@ -381,8 +560,12 @@ async function processCandle(candle, i) {
       const pos = await getPosition(t.side);
       if (pos && Math.abs(+pos.positionAmt) > 0) {
         monitorApiFails = 0;
-        if (i - t.idx > TIME_EXIT_CANDLES && (i - t.idx) % 10 === 0) {
-          console.log('[TIMEOUT] Position open ' + (i - t.idx) + ' candles — SL/TP active on exchange, monitoring');
+        // TIME_EXIT_CANDLES was previously only logged, never acted on, so a live
+        // position could be held indefinitely while paper/backtest exited at 50.
+        if (heldCandles >= TIME_EXIT_CANDLES) {
+          console.log('[TIMEOUT] ' + heldCandles + ' candles held — closing at market (time exit)');
+          await emergencyClose(t.side, formatQty(Math.abs(+pos.positionAmt)));
+          // fall through: the next poll confirms flat and books the PnL
         }
       } else if (pos) {
         // Confirmed flat → safe to clear orphan SL/TP and book the trade
@@ -421,11 +604,14 @@ async function processCandle(candle, i) {
     return;
   }
 
-  console.log('[CHECK-PASS] regime='+regime+' rv='+rv.toFixed(2)+' pools='+detectPools(regime==='BULL'?'LONG':'SHORT').length+' candle='+new Date(candle.openTime).toISOString().slice(5,16));
+  // detectPools is O(n^2) over the whole buffer; it was previously called twice
+  // per candle (once just to print a count). Compute once and reuse.
+  const poolType = regime === 'BULL' ? 'LONG' : 'SHORT';
+  const pools = detectPools(poolType);
+  console.log('[CHECK-PASS] regime='+regime+' rv='+rv.toFixed(2)+' pools='+pools.length+' candle='+new Date(candle.openTime).toISOString().slice(5,16));
 
   let found = false;
   if (regime === 'BULL') {
-    const pools = detectPools('LONG');
     for (const pool of pools) {
       if (pool.formed > i || pool.expires < i) continue;
       if (candle.low >= pool.level || candle.close <= pool.level) continue;
@@ -434,19 +620,22 @@ async function processCandle(candle, i) {
       const stopDist = av * STOP_ATR_MULT;
       const stop = pool.level - stopDist, tp = pool.level + stopDist * TP_R_MULT;
       if (stopDist <= 0 || pool.level <= stop) { rvolBlocked++; continue; }
-      const riskAmt = equity * RISK_PCT, fee = riskAmt * FEE_RATE;
+      if (!clearsCostFloor(candle.close, tp - candle.close)) { edgeBlocked++; continue; }
+      const { qty: sizedQty, riskAmt, feeEst } = sizePosition(stop, candle.close);
       if (!LIVE_MODE || isScanning) {
-        openTrade = { side:'LONG', entry:pool.level, stop, tp, risk:riskAmt+fee, qty:riskAmt/stopDist, idx:i, regime };
-        console.log('[🔥 ENTRY] ' + (isScanning?'SCAN':'PAPER') + ' LONG @ $' + pool.level.toFixed(0) + ' | Risk: $' + riskAmt.toFixed(2));
+        // Paper/scan must model the SAME market entry the live path takes.
+        // Booking entry at pool.level flatters every result: for a long sweep
+        // candle.low < pool.level < candle.close, so the real fill is worse.
+        openTrade = { side:'LONG', entry:candle.close, stop, tp, risk:riskAmt, qty:sizedQty, entryOpenTime:candle.openTime, regime };
+        console.log('[🔥 ENTRY] ' + (isScanning?'SCAN':'PAPER') + ' LONG @ $' + candle.close.toFixed(2) + ' | Risk: $' + riskAmt.toFixed(2));
         break;
       }
-      const r = await placeLiveTrade('LONG', stop, tp, stopDist, riskAmt, fee, i, regime, candle);
+      const r = await placeLiveTrade('LONG', stop, tp, stopDist, riskAmt, feeEst, i, regime, candle);
       if (r === 'SKIP') continue;
       break; // OPENED or ABORT
     }
     if (!found && pools.length > 0 && !isScanning) console.log('[BLOCK] No pool sweep LONG candle H='+candle.high.toFixed(0)+' L='+candle.low.toFixed(0)+' C='+candle.close.toFixed(0)+' pools='+pools.length+' active='+pools.filter(p=>p.formed<=i&&p.expires>=i).length);
   } else if (regime === 'BEAR') {
-    const pools = detectPools('SHORT');
     for (const pool of pools) {
       if (pool.formed > i || pool.expires < i) continue;
       if (candle.high <= pool.level || candle.close >= pool.level) continue;
@@ -455,13 +644,14 @@ async function processCandle(candle, i) {
       const stopDist = av * STOP_ATR_MULT;
       const stop = pool.level + stopDist, tp = pool.level - stopDist * TP_R_MULT;
       if (stopDist <= 0 || pool.level >= stop) { rvolBlocked++; continue; }
-      const riskAmt = equity * RISK_PCT, fee = riskAmt * FEE_RATE;
+      if (!clearsCostFloor(candle.close, candle.close - tp)) { edgeBlocked++; continue; }
+      const { qty: sizedQty, riskAmt, feeEst } = sizePosition(stop, candle.close);
       if (!LIVE_MODE || isScanning) {
-        openTrade = { side:'SHORT', entry:pool.level, stop, tp, risk:riskAmt+fee, qty:riskAmt/stopDist, idx:i, regime };
-        console.log('[🔥 ENTRY] ' + (isScanning?'SCAN':'PAPER') + ' SHORT @ $' + pool.level.toFixed(0) + ' | Risk: $' + riskAmt.toFixed(2));
+        openTrade = { side:'SHORT', entry:candle.close, stop, tp, risk:riskAmt, qty:sizedQty, entryOpenTime:candle.openTime, regime };
+        console.log('[🔥 ENTRY] ' + (isScanning?'SCAN':'PAPER') + ' SHORT @ $' + candle.close.toFixed(2) + ' | Risk: $' + riskAmt.toFixed(2));
         break;
       }
-      const r = await placeLiveTrade('SHORT', stop, tp, stopDist, riskAmt, fee, i, regime, candle);
+      const r = await placeLiveTrade('SHORT', stop, tp, stopDist, riskAmt, feeEst, i, regime, candle);
       if (r === 'SKIP') continue;
       break; // OPENED or ABORT
     }
@@ -475,7 +665,7 @@ function umpireReport() {
   console.log('════ ════ UMPIRE @ ' + new Date().toISOString() + ' ════ ═════');
   console.log('  Coin: ' + SYMBOL_UPPER + ' | Regime: ' + lastRegime + ' | Mode: ' + (LIVE_MODE ? '🔴 LIVE' : '📄 PAPER'));
   console.log('  Equity: $' + equity.toFixed(2) + ' | Trades: ' + trades + ' (L:' + longTrades + '/S:' + shortTrades + ') | WR: ' + wr.toFixed(0) + '% | PnL: $' + (equity - INITIAL_CAPITAL).toFixed(2));
-  console.log('  Sweeps: ' + sweepsDetected + ' | Ghosts: ' + ghostsBlocked + ' | RVOL skip: ' + rvolBlocked + ' | Range skip: ' + rangingSkipped);
+  console.log('  Sweeps: ' + sweepsDetected + ' | Ghosts: ' + ghostsBlocked + ' | RVOL skip: ' + rvolBlocked + ' | Range skip: ' + rangingSkipped + ' | Edge skip: ' + edgeBlocked);
   console.log('═══════════════════════════════════════════════════');
 }
 
@@ -490,22 +680,31 @@ function computeIndicators() {
 // Single entry point for every new closed candle (WS + REST fallback).
 // Claims lastProcessed BEFORE any await → the two feeds can never double-process.
 async function onNewCandle(candle) {
+  // Claim the candle synchronously (before any await) so the same candle cannot
+  // be taken twice, THEN serialise the body so two different candles from the two
+  // feeds cannot be processed concurrently and both open a position.
   if (candle.openTime <= lastProcessed) return false;
   lastProcessed = candle.openTime;
-  if (candles.length > 0 && candles[candles.length - 1].openTime === candle.openTime) candles.pop();
-  candles.push(candle);
-  if (candles.length > 15000) candles.shift();
-  computeIndicators();
-  await processCandle(candle, candles.length - 1);
-  if (candles.length % 24 === 0) umpireReport();
-  return true;
+  return serialise(async () => {
+    if (candles.length > 0 && candles[candles.length - 1].openTime === candle.openTime) candles.pop();
+    candles.push(candle);
+    if (candles.length > 15000) candles.shift();
+    computeIndicators();
+    await processCandle(candle, candles.length - 1);
+    if (candles.length % 24 === 0) umpireReport();
+    return true;
+  });
 }
 
 async function main() {
   console.log('═══════════════════════════════════════════════');
   console.log('  BulletBrain v3.0 — Live Runner');
   console.log('  Coin: ' + SYMBOL_UPPER + ' | Mode: ' + (LIVE_MODE ? '🔴 LIVE' : '📄 PAPER'));
-  console.log('  MARKET entry | SL: STOP_MARKET | TP: LIMIT reduceOnly | Fee: ' + (FEE_RATE*100).toFixed(2) + '%');
+  console.log('  MARKET entry | SL: STOP_MARKET | TP: LIMIT reduceOnly');
+  console.log('  Fees: taker ' + (TAKER_FEE*100).toFixed(3) + '% / maker ' + (MAKER_FEE*100).toFixed(3) +
+    '% → win costs ' + (WIN_COST_RATE*100).toFixed(3) + '%, loss costs ' + (LOSS_COST_RATE*100).toFixed(3) + '%');
+  console.log('  Min-edge filter: ' + (MIN_EDGE_COST_MULT > 0
+    ? MIN_EDGE_COST_MULT + 'x round-trip cost (BB_MIN_EDGE)' : 'DISABLED'));
   console.log('  RVOL≥' + SWEEP_RVOL_MIN + ' | ' + TP_R_MULT + 'R | ' + STOP_ATR_MULT + ' ATR');
   console.log('═══════════════════════════════════════════════');
 
@@ -514,6 +713,7 @@ async function main() {
     process.exit(1);
   }
 
+  await syncServerTime();
   await initExchangeInfo();
 
   console.log('Backfilling 1500 candles...');
@@ -536,7 +736,7 @@ async function main() {
   equity = INITIAL_CAPITAL; maxEquity = equity;
   trades = 0; wins = 0; losses = 0;
   longTrades = 0; shortTrades = 0;
-  sweepsDetected = 0; ghostsBlocked = 0; rvolBlocked = 0; rangingSkipped = 0;
+  sweepsDetected = 0; ghostsBlocked = 0; rvolBlocked = 0; rangingSkipped = 0; edgeBlocked = 0;
   openTrade = null;
 
   const KEEP_CANDLES = 500;
