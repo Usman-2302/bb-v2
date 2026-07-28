@@ -10,7 +10,9 @@ data/oi/
 data/funding/
 
 # Results
-results/
+results/*
+# Research platform outputs are the audit trail — keep them versioned.
+!results/research/
 
 # Logs
 logs/

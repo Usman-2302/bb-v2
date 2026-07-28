@@ -1,7 +1,7 @@
 {
   "name": "bulletbrain-v3",
   "version": "3.0.0",
-  "description": "BulletBrain v3.0 — Crypto Futures Backtesting Engine",
+  "description": "BulletBrain v3.0 \u2014 Crypto Futures Backtesting Engine",
   "main": "src/index.js",
   "scripts": {
     "test": "jest --runInBand",
@@ -15,7 +15,16 @@
     "backtest:stress": "node src/backtest/run_stress_test.js",
     "backtest:forward": "node src/backtest/run_forward_2025.js",
     "shadow": "node src/live/shadowRunner.js",
-    "setup": "bash setup_vps.sh"
+    "setup": "bash setup_vps.sh",
+    "backtest:replica": "node src/backtest/run_live_replica.js",
+    "research": "node src/research/run_research.js",
+    "research:beta": "node src/research/benchmark_beta.js",
+    "research:signal": "node src/backtest/research_signal_alpha.js",
+    "research:battery": "node src/backtest/research_alpha_battery.js",
+    "claude": "node src/live/claude-runner.js",
+    "claude:auto": "node src/live/claude-runner.js --auto",
+    "claude:once": "node src/live/claude-runner.js --once",
+    "claude:live": "node src/live/claude-runner.js --live"
   },
   "dependencies": {
     "adm-zip": "^0.5.17",
