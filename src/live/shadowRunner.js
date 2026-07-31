@@ -49,6 +49,35 @@ const TIMEFRAME = '15m';
 const INITIAL_CAPITAL = 10000;
 const DEBUG_MODE = process.env.BB_DEBUG === '1';  // set BB_DEBUG=1 in .env to enable
 
+// ── IMPROVED SCALPER CONFIG — Trend-Following Mode ──────────────────
+// Derived from liveRunner params but with wider SL/TP, lower risk, RANGING filter
+// Live: STOP_ATR_MULT=0.3, TP_R_MULT=2.5, RISK_PCT=0.02, LEVERAGE=20
+// Shadow Improved: stopBuffer=1.8, tp1RR=2.5, riskPct=0.015, skipRanging=true
+const IMPROVED_SCALPER_CONFIG = {
+  // LSO strategy overrides
+  lso: {
+    stopBuffer: 1.8,        // SL = sweepLow - 1.8 * ATR (was 0.1)
+    shortStopBuffer: 1.5,   // SL = sweepHigh + 1.5 * ATR (was 0.07)
+    equalLookback: 100,     // pools expire faster (was 200)
+    sweepRvolMin: 1.5,      // require stronger sweep volume (was 1.2)
+  },
+  // Trade management overrides
+  trade: {
+    tp1RR: 2.5,             // TP at 2.5R (was 1.0)
+    tp1CloseFraction: 0.5,  // close 50% at TP1
+  },
+  // Risk overrides (used by dynamic risk engine)
+  risk: {
+    baseRiskPct: 0.015,     // 1.5% base risk (was 2% in live, 1% in config)
+    minRiskPct: 0.005,      // 0.5% floor
+    maxRiskPct: 0.025,      // 2.5% ceiling
+  },
+  // Regime filter
+  regimeFilter: ['BULL', 'BEAR'],  // SKIP RANGING entirely
+  // Minimum conviction to trade
+  minConvictionScore: 0.4,
+};
+
 // ── Debug logger ───────────────────────────────────────────────────
 function debug(acct, msg) {
   if (!DEBUG_MODE) return;
@@ -66,17 +95,20 @@ function checkRegimeDrift(regime, rvol, atrPct) {
   lastRegime = regime;
 }
 
-// Account: SCALPER v2 — Skip RANGING, 3R target, RVOL≥1.2 (Phase breakthrough)
+// Account: SCALPER v3 — Improved Trend-Following (Skip RANGING, 2.5R target, Wider SL, RVOL≥1.5)
 const CONFIG_SCALPER = {
   name: 'SCALPER',
-  cvdGateVariant: 'CVD',
-  gateVP: false,              // OFF — backtest proven loser
-  gate4HTrend: false,         // OFF — backtest proven blocker
+  cvdGateVariant: 'CVD_ZSCORE',  // Use synthetic CVD gate (best without OI data)
+  gateVP: false,                 // OFF — backtest proven loser
+  gate4HTrend: false,            // OFF — backtest proven blocker
   obConfluenceEnabled: false,
   timeBreakeven: { enabled: false },
-  rvolThreshold: 1.2,         // Quality RVOL filter
+  rvolThreshold: 1.5,            // Quality RVOL filter
   useRangeTP2: false,
-  _skipRanging: true,         // Only trade BULL + BEAR
+  _skipRanging: true,            // Only trade BULL + BEAR
+  
+  // Improved params (overrides config.js LSO + TRADE blocks)
+  _improvedConfig: IMPROVED_SCALPER_CONFIG,
 };
 
 // ────────────────────────────────────────────────────────────────────
@@ -212,6 +244,16 @@ function initAccount(acct) {
   const oiDS = new Map();
   const oiTFn = r => LSO_CONFIG.oiFlushThreshold[r] || LSO_CONFIG.oiFlushThreshold.RANGING;
 
+  // Start with base LSO config, then apply improved overrides
+  const baseLsoConfig = { ...LSO_CONFIG };
+  if (cfg._improvedConfig && cfg._improvedConfig.lso) {
+    Object.assign(baseLsoConfig, cfg._improvedConfig.lso);
+  }
+  const baseTradeConfig = { ...TRADE };
+  if (cfg._improvedConfig && cfg._improvedConfig.trade) {
+    Object.assign(baseTradeConfig, cfg._improvedConfig.trade);
+  }
+
   acct.extra = {
     oiDataStore: oiDS,
     oiThresholdFn: oiTFn,
@@ -224,15 +266,23 @@ function initAccount(acct) {
     _rvolThreshold: cfg.rvolThreshold,
     _useRangeTP2: cfg.useRangeTP2,
     // SCALPER RANGING relaxations (feat/conviction-correlation)
-    // Only set for SCALPER — SNIPER config doesn't have these, so gate7 uses defaults
     _scalperRangingZscoreMin: cfg.scalperRangingZscoreMin,
     _scalperRangingRvolMin: cfg.scalperRangingRvolMin,
+    // Improved config flags
+    _skipRanging: cfg._skipRanging,
+    _improvedConfig: cfg._improvedConfig,
     allPools: [],
     poolActivationPtr: 0,
   };
 
   acct.strategy = createLSOStrategy(acct.extra);
   
+  // Override strategy config reference to use improved config
+  acct.strategy.config = baseLsoConfig;
+  
+  // Also inject improved trade config into extra for use in processCandleForAccount
+  acct.extra._improvedTradeConfig = baseTradeConfig;
+
   // Compute pool volumes and median for SMART account scoring
   if (acct.extra.allPools && acct.extra.allPools.length > 0) {
     for (const pool of acct.extra.allPools) {
@@ -251,7 +301,7 @@ function initAccount(acct) {
   }
 
   // Pre-detect pools from initial candles
-  acct.activeZones = acct.strategy.detectZones(candles, atr14, rvolVals, LSO_CONFIG, { extra: acct.extra, cfg: LSO_CONFIG, symbol: SYMBOL, timeframe: TIMEFRAME, gates: { regime: false, oi: false, killzone: false, macro: false }, cvdVals, atr14, rvolVals, candles });
+  acct.activeZones = acct.strategy.detectZones(candles, atr14, rvolVals, baseLsoConfig, { extra: acct.extra, cfg: baseLsoConfig, symbol: SYMBOL, timeframe: TIMEFRAME, gates: { regime: false, oi: false, killzone: false, macro: false }, cvdVals, atr14, rvolVals, candles });
 }
 
 // ────────────────────────────────────────────────────────────────────
@@ -284,7 +334,8 @@ function processCandleForAccount(acct, candleIndex) {
 
   // Per-candle setup
   if (strategy.onCandleStart) {
-    const ctx = { cfg: LSO_CONFIG, symbol: SYMBOL, timeframe: TIMEFRAME, gates: { regime: false, oi: false, killzone: false, macro: false }, extra, cvdVals, atr14, rvolVals, candles, i, candle, activeZones };
+    const lsoConfig = acct.strategy.config || LSO_CONFIG;
+    const ctx = { cfg: lsoConfig, symbol: SYMBOL, timeframe: TIMEFRAME, gates: { regime: false, oi: false, killzone: false, macro: false }, extra, cvdVals, atr14, rvolVals, candles, i, candle, activeZones };
     strategy.onCandleStart(ctx);
   }
 
@@ -302,7 +353,8 @@ function processCandleForAccount(acct, candleIndex) {
 
   // Scan for entries
   for (const zone of activeZones) {
-    const ctx = { cfg: LSO_CONFIG, symbol: SYMBOL, timeframe: TIMEFRAME, gates: { regime: false, oi: false, killzone: false, macro: false }, extra, cvdVals, atr14, rvolVals, candles, i };
+    const lsoConfig = acct.strategy.config || LSO_CONFIG;
+    const ctx = { cfg: lsoConfig, symbol: SYMBOL, timeframe: TIMEFRAME, gates: { regime: false, oi: false, killzone: false, macro: false }, extra, cvdVals, atr14, rvolVals, candles, i };
     const signal = strategy.checkEntry(zone, candle, ctx);
     if (!signal) continue;
 
@@ -361,7 +413,15 @@ function processCandleForAccount(acct, candleIndex) {
       // Priority account proceeds even if other account already registered
     }
 
-    // ── Conviction Score (analytics only — Gate7 handles quality) ──
+    // ── Regime Filter: Skip RANGING entirely (from improved config) ────
+    if (extra._improvedConfig && extra._improvedConfig.regimeFilter) {
+      const allowed = extra._improvedConfig.regimeFilter;
+      if (!allowed.includes(regime)) {
+        return; // Skip this regime entirely
+      }
+    }
+
+    // ── Conviction Score Filter (from improved config) ────────────────
     const kzCtx = { inKillzone: false };
     const csResult = computeFromContext({ extra }, rvolVals[i], kzCtx.inKillzone);
     const oldSizeMult = strategy.getSizeMultiplier
@@ -370,8 +430,15 @@ function processCandleForAccount(acct, candleIndex) {
     logConvictionComparison(acct.config.name, oldSizeMult, csResult, i);
 
     // Conviction score is logged but NEVER blocks trades — Gate7 + CVD handle quality filtering
+    // But we can use minConvictionScore from improved config as a soft gate
+    if (extra._improvedConfig && extra._improvedConfig.minConvictionScore) {
+      if (csResult.score < extra._improvedConfig.minConvictionScore) {
+        debug(acct, `SWEEP @ $${candle.close.toFixed(0)} pool=$${zone.level?.toFixed(0)} → SKIP: conviction ${csResult.score.toFixed(2)} < ${extra._improvedConfig.minConvictionScore}`);
+        continue;
+      }
+    }
 
-    // ── Sizing: SMART uses signal-strength scoring, others use conviction score ──
+    // ── Sizing: Use improved base risk if available ───────────────────
     let sizeMult, riskAmount, signalScore = null;
 
     // ── Dynamic Risk Level (applies to ALL accounts) ──
@@ -401,12 +468,18 @@ function processCandleForAccount(acct, candleIndex) {
     }
     
     // Apply risk level: 1-4 maps to 1%-4% of capital
-    const riskPct = riskResult.riskPct / 100; // e.g., 3 → 0.03
-    riskAmount = INITIAL_CAPITAL * riskPct;
-    sizeMult = riskResult.riskPct; // for logging
+    // Override with improved config base risk if available
+    let baseRiskPct = riskResult.riskPct / 100;
+    if (extra._improvedConfig && extra._improvedConfig.risk && extra._improvedConfig.risk.baseRiskPct) {
+      // Use improved config as base, then apply risk level multiplier
+      const riskLevelMult = riskResult.riskPct / 2; // level 2 = 1x, level 1 = 0.5x, etc.
+      baseRiskPct = extra._improvedConfig.risk.baseRiskPct * riskLevelMult;
+    }
+    riskAmount = INITIAL_CAPITAL * baseRiskPct;
+    sizeMult = baseRiskPct * 100; // for logging
     
     if (process.env.BB_DEBUG === '1') {
-      console.log(`[DEBUG:RISK] ${acct.config.name} risk=${riskResult.level}(${riskResult.label}) ${riskResult.riskPct}% | sig=${riskResult.factors.signal.toFixed(1)} coin=${riskResult.factors.coin.toFixed(1)} vol=${riskResult.factors.volume.toFixed(1)} | combined=${riskResult.combined.toFixed(2)}`);
+      console.log(`[DEBUG:RISK] ${acct.config.name} risk=${riskResult.level}(${riskResult.label}) ${riskResult.riskPct}% | sig=${riskResult.factors.signal.toFixed(1)} coin=${riskResult.factors.coin.toFixed(1)} vol=${riskResult.factors.volume.toFixed(1)} | combined=${riskResult.combined.toFixed(2)} | baseRiskPct=${(baseRiskPct*100).toFixed(2)}%`);
     }
 
     const rawSize = riskAmount / riskDist;
@@ -417,7 +490,9 @@ function processCandleForAccount(acct, candleIndex) {
     if (!riskCheck.allowed) continue;
     if (isDailyLossBreached(equity.dailyPnl, equity.capital)) continue;
 
-    const tp1 = entryPrice + riskDist * TRADE.tp1RR;
+    // Use improved trade config for TP1
+    const tradeConfig = extra._improvedTradeConfig || TRADE;
+    const tp1 = entryPrice + riskDist * tradeConfig.tp1RR;
     let tp2 = dolResult.dol;
 
     // Range-specific TP2 override (SCALPER config)
@@ -556,14 +631,21 @@ function onNewCandle(candle) {
   // Refresh pools every 50 candles (prevents pool expiry starvation)
   if (candles.length % 50 === 0) {
     for (const [, acct] of Object.entries(accounts)) {
+      // Use improved LSO config if available
+      const lsoConfig = acct.extra._improvedConfig && acct.extra._improvedConfig.lso
+        ? { ...LSO_CONFIG, ...acct.extra._improvedConfig.lso }
+        : LSO_CONFIG;
+      
       // Clear expired pools and re-detect fresh ones
       acct.activeZones = [];
       acct.extra.poolActivationPtr = 0;
-      acct.activeZones = acct.strategy.detectZones(candles, atr14, rvolVals, LSO_CONFIG, {
-        extra: acct.extra, cfg: LSO_CONFIG, symbol: SYMBOL, timeframe: TIMEFRAME,
+      acct.activeZones = acct.strategy.detectZones(candles, atr14, rvolVals, lsoConfig, {
+        extra: acct.extra, cfg: lsoConfig, symbol: SYMBOL, timeframe: TIMEFRAME,
         gates: { regime: false, oi: false, killzone: false, macro: false },
         cvdVals, atr14, rvolVals, candles,
       });
+      // Update strategy config reference
+      acct.strategy.config = lsoConfig;
       // Recompute pool volumes and median (needed for SMART signal scoring)
       if (acct.extra.allPools && acct.extra.allPools.length > 0) {
         for (const pool of acct.extra.allPools) {
