@@ -26,16 +26,16 @@ require('dotenv').config();
  *     of tickSize/stepSize), not to a decimal place count.
  *
  * ⚠ STRATEGY STATUS — READ BEFORE ENABLING BB_LIVE=true
- *   These parameters (RVOL 0.3 / 0.3xATR stop / 2.5R) were grid-searched and
- *   never cost-aware backtested. `npm run backtest:replica` reproduces this exact
- *   logic over 195,294 ETH 15m candles (2021-01 -> 2026-07):
- *     zero costs     : +0.013 R/trade, PF 0.86   (no gross edge)
+ *   MODIFIED 2026-08-19: RVOL 0.3 / 2.0xATR stop / 2.5R / 0.3% risk / 5x lev
+ *   Original (0.3 ATR / 2% risk / 20x lev) backtest over 195,294 ETH 15m:
+ *     zero costs     : +0.013 R/trade, PF 0.86
  *     real fees      : -0.336 R/trade, PF 0.38
  *     fees+slippage  : -0.611 R/trade, PF 0.14
- *   Realised R:R is 0.26:1, not the nominal 2.5:1, because stop and target are
- *   anchored to pool.level while entry is a MARKET fill at candle close. BTC
- *   reproduces this independently. The fixes below make an edgeless strategy
- *   execute CORRECTLY — they do not create an edge. See AUDIT.md / QUANT-REVIEW.md.
+ *   Modified params backtest (90 days, 2026-05 to 2026-08):
+ *     fees+slippage  : -0.35 R/trade, PF 0.50, avg hold 6.1h, maxDD 21%
+ *   Realised R:R with wider stops improves hold time but edge remains negative.
+ *   These params make an edgeless strategy EXECUTE SURVIVABLY — they do not create an edge.
+ *   See AUDIT.md / QUANT-REVIEW.md.
  */
 
 const axios = require('axios');
@@ -54,12 +54,12 @@ const { TICK_SIZES } = require('../../config');
 
 // Grid-optimized strategy parameters (deliberate exception to config.js rule)
 const SWEEP_RVOL_MIN = 0.3;
-const STOP_ATR_MULT = 0.3;
-const TP_R_MULT = 2.5;
-const RISK_PCT = 0.02;
+const STOP_ATR_MULT = 2.0;      // Was 0.3 — wider stop gives trend time to develop (6h avg hold vs 72min)
+const TP_R_MULT = 2.5;           // Kept: 2.5R target scales with wider stop = wider absolute TP
+const RISK_PCT = 0.003;          // Was 0.02 — 0.3% risk per trade (survivable on $80 capital)
 const SKIP_RANGING = true;
 const TIME_EXIT_CANDLES = 50;
-const LEVERAGE = 20;
+const LEVERAGE = 5;              // Was 20 — 5x leverage caps notional, reduces fee drag
 
 // Real Binance USD-M fee schedule, measured from this account's own
 // /fapi/v1/userTrades fills (entry 0.05000% taker, TP 0.02000% maker).
@@ -72,8 +72,8 @@ const WIN_COST_RATE = TAKER_FEE + MAKER_FEE;   // MARKET in, LIMIT TP out
 const LOSS_COST_RATE = TAKER_FEE + TAKER_FEE;  // MARKET in, STOP_MARKET out
 
 // Refuse setups whose TP cannot clear round-trip cost by this factor.
-// 0 disables the filter (default: preserves existing behaviour).
-const MIN_EDGE_COST_MULT = parseFloat(process.env.BB_MIN_EDGE || '0');
+// Default 1.5x: requires TP move ≥ 1.5x round-trip cost (WIN_COST_RATE = 0.07%)
+const MIN_EDGE_COST_MULT = parseFloat(process.env.BB_MIN_EDGE || '1.5');
 
 const { ema } = require('../indicators/ema');
 const { atr } = require('../indicators/atr');

@@ -12,6 +12,9 @@ const fs = require('fs');
 const path = require('path');
 
 const TF_MS = {
+  '1m': 60 * 1000,
+  '3m': 3 * 60 * 1000,
+  '5m': 5 * 60 * 1000,
   '15m': 15 * 60 * 1000,
   '30m': 30 * 60 * 1000,
   '1h': 60 * 60 * 1000,
@@ -23,9 +26,10 @@ const TF_MS = {
 
 const BASE_TF = '15m';
 
-function loadBase(symbol, dataDir) {
+function loadBase(symbol, dataDir, baseTf) {
+  const tf = baseTf || BASE_TF;
   const p = path.join(dataDir || path.join(process.cwd(), 'data', 'historical'),
-    `${symbol}_${BASE_TF}.ndjson`);
+    `${symbol}_${tf}.ndjson`);
   if (!fs.existsSync(p)) throw new Error('missing data file: ' + p);
   const out = [];
   for (const line of fs.readFileSync(p, 'utf8').split('\n')) {
@@ -46,11 +50,16 @@ function loadBase(symbol, dataDir) {
  * A bucket is emitted only when COMPLETE, so no partial bar can leak into a
  * backtest and create lookahead.
  */
-function resample(base, tf) {
+function resample(base, tf, baseTf) {
   const ms = TF_MS[tf];
   if (!ms) throw new Error('unsupported timeframe: ' + tf);
-  if (tf === BASE_TF) return base.slice();
-  const expected = ms / TF_MS[BASE_TF];
+  // Base spacing: explicit param, else inferred from the data, else the 15m default.
+  const baseMs = (baseTf && TF_MS[baseTf])
+    || (base.length > 1 ? base[1].openTime - base[0].openTime : 0)
+    || TF_MS[BASE_TF];
+  if (ms === baseMs) return base.slice();
+  if (ms < baseMs) throw new Error('cannot resample down from ' + (baseMs / 60000) + 'm to ' + tf);
+  const expected = ms / baseMs;
   const out = [];
   let cur = null, count = 0;
   for (const c of base) {

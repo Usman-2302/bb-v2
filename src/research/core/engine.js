@@ -23,6 +23,16 @@
  *    first. OHLC cannot resolve the order and the optimistic reading is how
  *    backtests lie.
  *  - A gap through the stop fills at the open, not the stop price.
+ *
+ * LIMIT ENTRIES (strategy.entryMode === 'limit'):
+ *  - The order rests at the SIGNAL bar's close and may fill during bar i+1
+ *    only: a long fills iff low(i+1) trades through the limit by >= 1bp (the
+ *    queue-risk haircut — a mere touch does not guarantee a fill on a real
+ *    book). Gap opens fill at the open when it is better than the limit.
+ *  - Unfilled orders are cancelled (logged as 'limit_not_filled' rejects).
+ *  - Maker entries pay makerFee with no slippage. This exists to test whether
+ *    sub-hour strategies can get under the taker fee floor at all; it is NOT a
+ *    license to assume fills — the 1bp penetration rule is the conservatism.
  */
 
 const { CostModel } = require('./costs');
@@ -136,8 +146,20 @@ function runBacktest(strategy, ctx, opts = {}) {
 
     const nextIdx = i + 1;
     if (nextIdx >= n) break;
-    const refPrice = c[nextIdx].open;
-    const entry = cost.marketFill(refPrice, sig.dir);
+    let entry, entryIsMaker = false;
+    if (strategy.entryMode === 'limit') {
+      // Resting limit at the signal bar's close; fills during bar i+1 only.
+      const limit = c[i].close;
+      const bar = c[nextIdx];
+      const through = 1e-4;   // must trade ~1bp through the limit (queue risk)
+      const filled = sig.dir > 0 ? bar.low <= limit * (1 - through)
+                                 : bar.high >= limit * (1 + through);
+      if (!filled) { reject('limit_not_filled'); continue; }
+      entry = sig.dir > 0 ? Math.min(bar.open, limit) : Math.max(bar.open, limit);
+      entryIsMaker = true;
+    } else {
+      entry = cost.marketFill(c[nextIdx].open, sig.dir);
+    }
 
     const stop = strategy.stop(ctx, i, sig, entry);
     if (!Number.isFinite(stop)) { reject('no_stop'); continue; }
@@ -161,7 +183,7 @@ function runBacktest(strategy, ctx, opts = {}) {
     const riskDollars = (opts.equity || 10000) * (opts.riskPct || 0.01);
     const perUnitLoss = stopDist + entry * cost.roundTripLoss();
     const qty = riskDollars / perUnitLoss;
-    const entryFee = cost.fee(Math.abs(entry * qty), false);
+    const entryFee = cost.fee(Math.abs(entry * qty), entryIsMaker);
 
     open = {
       dir: sig.dir, entry, stop, target, qty, entryFee,

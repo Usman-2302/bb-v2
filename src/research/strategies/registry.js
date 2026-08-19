@@ -259,6 +259,96 @@ const STRATEGIES = [
     stop: swingStop(0.25),
     target: rTarget(2.5),
   },
+
+  // ── inverse hypotheses ────────────────────────────────────────────────────
+  // The four strategies above the REJECTED line did not fail weakly — they are
+  // negative with |t| up to 26. A significantly NEGATIVE expectancy is
+  // exploitable information if the same signal survives costs in reverse. Each
+  // entry below is the exact mirror of a rejected one (direction flipped,
+  // direction-relative exits re-anchored so stop/target stay on the correct
+  // side). If an inverse also loses, the original edge was cost drag, not
+  // information — that distinction decides where research effort goes next.
+
+  {
+    name: 'inv_vwap_momentum_1h',
+    timeframe: '1h',
+    rationale:
+      'Inverse of vwap_reversion_1h (REJECTED, t=-26). If stretching 2 sigma ' +
+      'from session VWAP systematically CONTINUES rather than reverts, the ' +
+      'original signal was information with the wrong sign: overextension marks ' +
+      'informed flow, not excess. Rides the deviation instead of fading it.',
+    maxHoldBars: 12,
+    signal: (ctx, i) => {
+      const d = ctx.vwapDev[i];
+      if (!Number.isFinite(d)) return null;
+      if (d > 2) return { dir: 1 };      // was SHORT — flipped
+      if (d < -2) return { dir: -1 };    // was LONG  — flipped
+      return null;
+    },
+    stop: atrStop(1.5),
+    target: rTarget(1.5),   // original targeted vwap; mirrored target must be in trade direction
+  },
+
+  {
+    name: 'inv_zscore_momentum_1h',
+    timeframe: '1h',
+    rationale:
+      'Inverse of zscore_reversion_1h (REJECTED, t=-17). If a multi-sigma ' +
+      'single-bar move reflects informed repricing rather than liquidity ' +
+      'depletion, continuation is the profitable side. Same bar, opposite sign.',
+    maxHoldBars: 12,
+    signal: (ctx, i) => {
+      if (!(ctx.rv20[i] > 0)) return null;
+      const z = ctx.ret1[i] / ctx.rv20[i];
+      if (z > 2.5) return { dir: 1 };    // was SHORT — flipped
+      if (z < -2.5) return { dir: -1 };  // was LONG  — flipped
+      return null;
+    },
+    stop: atrStop(2),
+    target: rTarget(1.5),
+  },
+
+  {
+    name: 'inv_htf_trend_pullback_4h',
+    timeframe: '4h',
+    rationale:
+      'Inverse of htf_trend_pullback_4h (REJECTED, t=-4.7). Fades the pullback ' +
+      'instead of buying it: a touch of the fast EMA inside an established ' +
+      'higher-timeframe trend is treated as trend FAILURE, not opportunity. ' +
+      'If both directions lose, the EMA-touch event carries no information at 4h.',
+    maxHoldBars: 40,
+    signal: (ctx, i) => {
+      if (!(ctx.ema50[i] && ctx.ema200[i])) return null;
+      const up = ctx.ema50[i] > ctx.ema200[i];
+      const dn = ctx.ema50[i] < ctx.ema200[i];
+      if (up && ctx.close[i] <= ctx.ema20[i] && ctx.close[i - 1] > ctx.ema20[i - 1]) return { dir: -1 };  // flipped
+      if (dn && ctx.close[i] >= ctx.ema20[i] && ctx.close[i - 1] < ctx.ema20[i - 1]) return { dir: 1 };   // flipped
+      return null;
+    },
+    stop: swingStop(0.25),
+    target: rTarget(2.5),
+  },
+
+  {
+    name: 'inv_trend_pullback_1h',
+    timeframe: '1h',
+    rationale:
+      'Inverse of trend_pullback_1h (REJECTED, t=-7.2). The 1h timeframe-scaling ' +
+      'control for the inverse family: same mirror as inv_htf_trend_pullback_4h ' +
+      'at 1h. A inverse that loses at BOTH timeframes closes the question; one ' +
+      'that wins only at 4h re-confirms the cost floor as the binding constraint.',
+    maxHoldBars: 24,
+    signal: (ctx, i) => {
+      if (!(ctx.ema50[i] && ctx.ema200[i])) return null;
+      const up = ctx.ema50[i] > ctx.ema200[i];
+      const dn = ctx.ema50[i] < ctx.ema200[i];
+      if (up && ctx.close[i] <= ctx.ema20[i] && ctx.close[i - 1] > ctx.ema20[i - 1]) return { dir: -1 };  // flipped
+      if (dn && ctx.close[i] >= ctx.ema20[i] && ctx.close[i - 1] < ctx.ema20[i - 1]) return { dir: 1 };   // flipped
+      return null;
+    },
+    stop: swingStop(0.25),
+    target: rTarget(2.5),
+  },
 ];
 
 // ── strategies built from templates ─────────────────────────────────────────
